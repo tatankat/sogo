@@ -253,7 +253,7 @@
 
   if (!baseCalDAVURL)
     {
-      davURL = [[calendar realDavURL] absoluteString];
+      davURL = [[calendar realDavURL] path];
       if ([davURL hasSuffix: @"/"])
         baseCalDAVURL = [davURL substringToIndex: [davURL length] - 1];
       else
@@ -270,7 +270,7 @@
 
   if (!basePublicCalDAVURL)
     {
-      davURL = [[calendar publicDavURL] absoluteString];
+      davURL = [[calendar publicDavURL] path];
       if ([davURL hasSuffix: @"/"])
 	basePublicCalDAVURL = [davURL substringToIndex: [davURL length] - 1];
       else

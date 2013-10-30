@@ -77,7 +77,7 @@
   moduleURL = [NSURL URLWithString: loginModule
 		     relativeToURL: [co soURL]];
 
-  return [self redirectToLocation: [moduleURL absoluteString]];
+  return [self redirectToLocation: [moduleURL path]];
 }
 
 - (void) _fillFreeBusyItems: (unsigned int *) items
