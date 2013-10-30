@@ -63,7 +63,6 @@ checkDir() {
     then
 	echo "$directory is not owned by the '$USER' user."
 	exit 1
-
     fi
 }
 
@@ -74,7 +73,22 @@ checkDir /var/log/$NAME
 set -e
 
 . /lib/lsb/init-functions
-. /usr/share/GNUstep/Makefiles/GNUstep.sh
+if [ -z "${GNUSTEP_MAKEFILES}" ]
+then
+	GNUSTEP_MAKEFILES=$(gnustep-config --variable=GNUSTEP_MAKEFILES)
+	if [ -z "${GNUSTEP_MAKEFILES}" ]
+	then
+		if [ -e $GNUSTEP_CONF ] # can be configured in defaults
+		then
+			. $GNUSTEP_CONF
+		# else... it's a pity
+		fi
+	# else ok!
+	fi
+# else ok! (configured in defaults)
+fi
+# Should we check for existance?
+. ${GNUSTEP_MAKEFILES}/GNUstep.sh
 
 DAEMON_OPTS="-WOWorkersCount $PREFORK -WOPidFile $PIDFILE -WOLogFile $LOGFILE"
 
