@@ -142,8 +142,9 @@
   resourceType = [NSMutableArray arrayWithArray: [super davResourceType]];
   type = [NSArray arrayWithObjects: @"addressbook", XMLNS_CARDDAV, nil];
   [resourceType addObject: type];
-  type = [NSArray arrayWithObjects: @"directory", XMLNS_CARDDAV, nil];
-  [resourceType addObject: type];
+//to be re-enabled for clients with proper directory support (and probably best to put all checks in 1 place based on this information, when using this class or something
+//  type = [NSArray arrayWithObjects: @"directory", XMLNS_CARDDAV, nil];
+//  [resourceType addObject: type];
 
   return resourceType;
 }

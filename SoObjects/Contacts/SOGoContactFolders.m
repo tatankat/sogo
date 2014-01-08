@@ -127,9 +127,11 @@
   SOGoContactSourceFolder *currentFolder;
   SOGoUser *currentUser;
 
-  if (! ([[context request] isIPhoneAddressBookApp] &&
+//To be re-enabled for clients with proper directory support
+//Probably best to use: hasDirectoryGatewaySupport instead of specific client check
+/*  if (! ([[context request] isIPhoneAddressBookApp] &&
            ![[context request] isAndroid]))
-    {
+    {*/
       currentUser = [context activeUser];
       if (activeUserIsOwner
           || [[currentUser login] isEqualToString: owner])
@@ -156,7 +158,7 @@
               domain = [domains nextObject];
             }
         }
-    }
+//    }
 
   return nil;
 }
@@ -252,9 +254,10 @@
 {
   NSMutableArray *keys;
 
-  if ([[context request] isMacOSXAddressBookApp])
+// re-enable this for clients that correctly implement the directory feature
+/*  if ([[context request] isMacOSXAddressBookApp])
     keys = [NSMutableArray arrayWithObject: @"personal"];
-  else
+  else*/
     keys = (NSMutableArray *) [super toManyRelationshipKeys];
 
   return keys;
