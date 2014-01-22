@@ -52,6 +52,8 @@
 - (void) setIsPersonalSource: (BOOL) isPersonal;
 - (BOOL) isPersonalSource;
 
+- (NSString *) davCollectionTag;
+
 @end
 
 

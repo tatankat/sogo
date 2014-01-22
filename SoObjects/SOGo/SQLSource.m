@@ -678,7 +678,7 @@
 }
 
 
-- (NSArray *) allEntryIDsVisibleFromDomain: (NSString *) domain
+- (NSArray *) allEntrySomeAttributeVisibleFromDomain: (NSString *) attribute inDomain: (NSString *) domain
 {
   EOAdaptorChannel *channel;
   EOQualifier *domainQualifier;
@@ -693,8 +693,8 @@
   channel = [cm acquireOpenChannelForURL: _viewURL];
   if (channel)
     {
-      sql = [NSMutableString stringWithFormat: @"SELECT c_uid FROM %@",
-                      [_viewURL gcsTableName]];
+      sql = [NSMutableString stringWithFormat: @"SELECT %@ FROM %@",
+                      attribute,[_viewURL gcsTableName]];
 
       if (_domainField)
         {
@@ -727,7 +727,7 @@
           
           while ((row = [channel fetchAttributes: attrs withZone: NULL]))
             {
-              value = [row objectForKey: @"c_uid"];
+              value = [row objectForKey: attribute];
               if (value)
                 [results addObject: value];
             }
@@ -744,9 +744,66 @@
   return results;
 }
 
+
+- (NSArray *) allEntryIDsVisibleFromDomain: (NSString *) domain
+{
+  return [self allEntrySomeAttributeVisibleFromDomain: @"c_uid" inDomain: domain];
+}
+
+//TODO may be different per domain, but does not really matter
+//TODO almost the same as GCSFolder, but different...
+- (NSString *) lastModification
+{
+  EOAdaptorChannel *channel;
+  GCSChannelManager *cm;
+  NSException *ex;
+  NSMutableString *sql;
+
+  cm = [GCSChannelManager defaultChannelManager];
+  channel = [cm acquireOpenChannelForURL: _viewURL];
+  if (channel)
+    {
+      //TODO: SQL compliant?
+      sql = [NSMutableString stringWithFormat: @"SELECT UNIX_TIMESTAMP(MAX(modifyTimestamp)) AS lastMod FROM %@",
+                      [_viewURL gcsTableName]];
+
+      ex = [channel evaluateExpressionX: sql];
+      if (!ex)
+        {
+          NSDictionary *row;
+          NSArray *attrs;
+          NSString *value;
+
+          attrs = [channel describeResults: NO];
+          
+          while ((row = [channel fetchAttributes: attrs withZone: NULL]))
+            {
+              value = [row objectForKey: @"lastMod"];
+
+              if (value)
+                {
+                  return value;
+                }
+            } 
+        }
+      else
+        [self errorWithFormat: @"could not run SQL '%@': %@", sql, ex];
+      [cm releaseChannel: channel];
+    }
+  else
+    [self errorWithFormat:@"failed to acquire channel for URL: %@",
+          [_viewURL absoluteString]];
+
+  return nil; 
+}
+
 - (NSArray *) allEntryIDs
 {
   return [self allEntryIDsVisibleFromDomain: nil];
+}
+- (NSArray *) allEntrySomeAttribute: (NSString *) attribute
+{
+  return [self allEntrySomeAttributeVisibleFromDomain: attribute inDomain: nil];
 }
 
 - (NSArray *) fetchContactsMatching: (NSString *) filter

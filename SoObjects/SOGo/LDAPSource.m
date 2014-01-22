@@ -794,8 +794,17 @@ static Class NSStringK;
 {
   return [self allEntryIDs];
 }
+- (NSArray *) allEntrySomeAttributeVisibleFromDomain: (NSString *) attribute inDomain: (NSString *) domain
+{
+  return [self allEntrySomeAttribute: attribute];
+}
 
 - (NSArray *) allEntryIDs
+{
+  return [self allEntrySomeAttribute: IDField];
+}
+
+- (NSArray *) allEntrySomeAttribute: (NSString *) attribute
 {
   NSEnumerator *entries;
   NGLdapEntry *currentEntry;
@@ -804,12 +813,12 @@ static Class NSStringK;
   NSMutableString *qs;
   NSString *value;
   NSArray *attributes;
-  NSMutableArray *ids;
+  NSMutableArray *resultingValues;
 
-  ids = [NSMutableArray array];
+  resultingValues = [NSMutableArray array];
 
   ldapConnection = [self _ldapConnection];
-  attributes = [NSArray arrayWithObject: IDField];
+  attributes = [NSArray arrayWithObject: attribute];
 
   qs = [NSMutableString stringWithFormat: @"(%@='*')", CNField];
   if ([_filter length])
@@ -831,13 +840,40 @@ static Class NSStringK;
 
   while ((currentEntry = [entries nextObject]))
     {
-      value = [[currentEntry attributeWithName: IDField]
+      value = [[currentEntry attributeWithName: attribute]
                             stringValueAtIndex: 0];
       if ([value length] > 0)
-        [ids addObject: value];
+        [resultingValues addObject: value];
     }
+  return resultingValues;
+}
 
-  return ids;
+- (NSString *) lastModification
+{
+  NSArray *allTimestamps;
+  NSNumber *current;
+  NSString *currentEntry, *substring;
+  NSEnumerator *e;
+  NSNumberFormatter *f = [[NSNumberFormatter alloc] init];
+  NSNumber *currentMax = [NSNumber numberWithInt:0];
+
+  [f setNumberStyle:NSNumberFormatterDecimalStyle];
+
+  allTimestamps = [self allEntrySomeAttribute:@"modifyTimestamp"];
+  e = [allTimestamps objectEnumerator];
+  while ((currentEntry = [e nextObject]))
+    {
+      substring = [currentEntry substringToIndex:[currentEntry length]-1];
+      current = [f numberFromString:substring];
+      if ( [currentMax compare: current] == NSOrderedAscending )
+        {
+          currentMax = current; //we implement our own max, because we either way have loop through all the values
+        }
+    }
+ 
+  [f release]; 
+  //max = [[allTimestamps valueForKeyPath:@"@max.intValue"] stringValue];
+  return [currentMax stringValue];
 }
 
 - (void) _fillEmailsOfEntry: (NGLdapEntry *) ldapEntry

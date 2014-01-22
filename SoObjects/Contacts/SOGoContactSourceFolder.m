@@ -762,4 +762,9 @@
   return acls;
 }
 
+- (NSString *) davCollectionTag
+{
+  return [source lastModification];
+}
+
 @end
