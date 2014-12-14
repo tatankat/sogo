@@ -873,7 +873,8 @@ static Class NSStringK;
  
   [f release]; 
   //max = [[allTimestamps valueForKeyPath:@"@max.intValue"] stringValue];
-  return [currentMax stringValue];
+  //Add count to force new value after deleting (when not keeping the deleted items)
+  return [[currentMax stringValue] stringByAppendingString: [NSString stringWithFormat:@"%d", [allTimestamps count]]];
 }
 
 - (void) _fillEmailsOfEntry: (NGLdapEntry *) ldapEntry

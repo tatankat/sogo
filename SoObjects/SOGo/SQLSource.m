@@ -764,7 +764,7 @@
   if (channel)
     {
       //TODO: SQL compliant?
-      sql = [NSMutableString stringWithFormat: @"SELECT UNIX_TIMESTAMP(MAX(modifyTimestamp)) AS lastMod FROM %@",
+      sql = [NSMutableString stringWithFormat: @"SELECT COUNT(*) AS count,UNIX_TIMESTAMP(MAX(modifyTimestamp)) AS lastMod FROM %@",
                       [_viewURL gcsTableName]];
 
       ex = [channel evaluateExpressionX: sql];
@@ -772,17 +772,20 @@
         {
           NSDictionary *row;
           NSArray *attrs;
-          NSString *value;
+          NSValue *value;
+          NSValue *count;
 
           attrs = [channel describeResults: NO];
           
           while ((row = [channel fetchAttributes: attrs withZone: NULL]))
             {
               value = [row objectForKey: @"lastMod"];
+              count = [row objectForKey: @"count"];
 
-              if (value)
+              if (value && count)
                 {
-                  return value;
+                  //Add count to force new value after deleting (when not keeping the deleted items)
+                  return [[NSString stringWithFormat: @"%@", value] stringByAppendingString: [NSString stringWithFormat: @"%@", count]];
                 }
             } 
         }
