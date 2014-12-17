@@ -35,9 +35,9 @@ h1, dd, .dl-list dt { margin-left: 130px; }
         <dd><var:string value="formattedAptEndDate" const:escapeHTML="NO"
            /><var:if condition="formattedAptEndTime.length"> - <var:string value="formattedAptEndTime" const:escapeHTML="NO"/> <var:string value="viewTZ" const:escapeHTML="NO"/>
            </var:if></dd>
-        <var:if condition="apt.comment.length"
+        <var:if condition="formattedComment.length"
         ><dt><var:string label:value="comment_label" const:escapeHTML="NO"/></dt>
-        <dd><var:string value="apt.comment" const:escapeHTML="NO"/></dd></var:if>
+        <dd><var:string value="formattedComment" const:escapeHTML="NO"/></dd></var:if>
       </dl>
     </div>
   </body>

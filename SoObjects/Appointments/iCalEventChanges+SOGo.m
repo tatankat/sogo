@@ -33,7 +33,7 @@
   static NSString *properties[] = {@"organizer", @"startDate", @"endDate",
                                    @"due", @"duration",
                                    @"rdate", @"rrule", @"exdate", @"exrule",
-                                   @"status", @"location",
+                                   @"status", @"location", @"comment", 
                                    nil};
   NSString **currentProperty;
   BOOL updateRequired;
