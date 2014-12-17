@@ -113,8 +113,10 @@
   for (count = 0; count < max; count++)
     {
       property = [updatedProperties objectAtIndex: count];
-      value = [self valueForProperty: property
-                   withDateFormatter: _dateFormatter];
+      value = [[[self valueForProperty: property
+                   withDateFormatter: _dateFormatter]
+                  stringByReplacingOccurrencesOfString:@"\n" withString:@"<br/>"]
+                  stringByReplacingOccurrencesOfString:@" " withString:@"&nbsp;"];
       /* Unhandled properties will return nil */
       if (value)
         {

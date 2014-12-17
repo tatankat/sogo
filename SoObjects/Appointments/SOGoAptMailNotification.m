@@ -243,6 +243,19 @@
   return s;
 }
 
+- (NSString *) formattedComment
+{
+  NSString *s;
+  id value;
+  
+  value = [[self apt] comment];
+ 
+  s = [[value stringByReplacingOccurrencesOfString:@"\n" withString:@"<br/>"]
+          stringByReplacingOccurrencesOfString:@" " withString:@"&nbsp;"]; 
+
+  return s;
+}
+
 - (void) setupValues
 {
   SOGoUser *user;

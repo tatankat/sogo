@@ -32,7 +32,7 @@ h1, dd, .dl-list dt { margin-left: 130px; }
       <dl class="dl-horizontal">
       <var:foreach list="allChangesList" item="currentItem"
         ><dt><var:string var:value="currentItem"/></dt>
-        <dd><var:string var:value="valueForCurrentItem"/></dd>
+        <dd><var:string var:value="valueForCurrentItem" const:escapeHTML="NO"/></dd>
       </var:foreach>
       </dl>
 
