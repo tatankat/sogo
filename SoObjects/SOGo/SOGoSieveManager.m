@@ -1,9 +1,8 @@
 /* SOGoSieveManager.m - this file is part of SOGo
  *
- * Copyright (C) 2010-2011 Inverse inc.
+ * Copyright (C) 2010-2015 Inverse inc.
  *
- * Author: Wolfgang Sourdeau <wsourdeau@inverse.ca>
- *         Ludovic Marcotte <lmarcotte@inverse.ca>
+ * Author: Inverse <info@inverse.ca>
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +31,7 @@
 #import <SOGo/SOGoDomainDefaults.h>
 #import <SOGo/SOGoUser.h>
 
+#import <NGExtensions/NSObject+Logs.h>
 #import <NGStreams/NGInternetSocketAddress.h>
 #import <NGImap4/NGSieveClient.h>
 
@@ -42,6 +42,7 @@
 typedef enum {
   UIxFilterFieldTypeAddress,
   UIxFilterFieldTypeHeader,
+  UIxFilterFieldTypeBody,
   UIxFilterFieldTypeSize,
 } UIxFilterFieldType;
 
@@ -50,6 +51,7 @@ static NSArray *sieveSizeOperators = nil;
 static NSMutableDictionary *fieldTypes = nil;
 static NSDictionary *sieveFields = nil;
 static NSDictionary *sieveFlags = nil;
+static NSDictionary *typeRequirements = nil;
 static NSDictionary *operatorRequirements = nil;
 static NSMutableDictionary *methodRequirements = nil;
 static NSString *sieveScriptName = @"sogo";
@@ -136,13 +138,13 @@ static NSString *sieveScriptName = @"sogo";
       fieldTypes = [NSMutableDictionary new];
       fields = [NSArray arrayWithObjects: @"to", @"cc", @"to_or_cc", @"from",
                         nil];
-      [fieldTypes setObject: [NSNumber
-                               numberWithInt: UIxFilterFieldTypeAddress]
+      [fieldTypes setObject: [NSNumber numberWithInt: UIxFilterFieldTypeAddress]
                     forKeys: fields];
       fields = [NSArray arrayWithObjects: @"header", @"subject", nil];
-      [fieldTypes setObject: [NSNumber
-                               numberWithInt: UIxFilterFieldTypeHeader]
+      [fieldTypes setObject: [NSNumber numberWithInt: UIxFilterFieldTypeHeader]
                     forKeys: fields];
+      [fieldTypes setObject: [NSNumber numberWithInt: UIxFilterFieldTypeBody]
+                     forKey: @"body"];
       [fieldTypes setObject: [NSNumber numberWithInt: UIxFilterFieldTypeSize]
                      forKey: @"size"];
     }
@@ -169,13 +171,16 @@ static NSString *sieveScriptName = @"sogo";
                         @"Junk", @"junk",
                         @"NotJunk", @"not_junk",
                         @"\\Seen", @"seen",
-                        @"$Label1", @"label1",
-                        @"$Label2", @"label2",
-                        @"$Label3", @"label3",
-                        @"$Label4", @"label4",
-                        @"$Label5", @"label5",
                         nil];
       [sieveFlags retain];
+    }
+  if (!typeRequirements)
+    {
+      typeRequirements
+        = [NSDictionary dictionaryWithObjectsAndKeys:
+                          @"body", [NSNumber numberWithInt: UIxFilterFieldTypeBody],
+                        nil];
+      [typeRequirements retain];
     }
   if (!operatorRequirements)
     {
@@ -252,7 +257,7 @@ static NSString *sieveScriptName = @"sogo";
                    andType: (UIxFilterFieldType *) type
 {
   NSNumber *fieldType;
-  NSString *jsonField, *customHeader;
+  NSString *jsonField, *customHeader, *requirement;
 
   jsonField = [rule objectForKey: @"field"];
   if (jsonField)
@@ -270,10 +275,15 @@ static NSString *sieveScriptName = @"sogo";
                 scriptError = (@"Pseudo-header field 'header' without"
                                @" 'custom_header' parameter.");
             }
-          else if ([jsonField isEqualToString: @"size"])
+          else if ([jsonField isEqualToString: @"body"] ||
+                   [jsonField isEqualToString: @"size"])
             *field = nil;
           else
             *field = [sieveFields objectForKey: jsonField];
+
+          requirement = [typeRequirements objectForKey: fieldType];
+          if (requirement)
+            [requirements addObjectUniquely: requirement];
         }
       else
         scriptError
@@ -332,6 +342,7 @@ static NSString *sieveScriptName = @"sogo";
   if (type == UIxFilterFieldTypeSize)
     rc = [sieveSizeOperators containsObject: operator];
   else
+    // Header and Body types
     rc = (![sieveSizeOperators containsObject: operator]
           && [sieveOperators containsObject: operator]);
 
@@ -370,17 +381,23 @@ static NSString *sieveScriptName = @"sogo";
   sieveRule = [NSMutableString stringWithCapacity: 100];
   if (revert)
     [sieveRule appendString: @"not "];
+
   if (type == UIxFilterFieldTypeAddress)
     [sieveRule appendString: @"address "];
   else if (type == UIxFilterFieldTypeHeader)
     [sieveRule appendString: @"header "];
+  else if (type == UIxFilterFieldTypeBody)
+    [sieveRule appendString: @"body :text "];
   else if (type == UIxFilterFieldTypeSize)
     [sieveRule appendString: @"size "];
   [sieveRule appendFormat: @":%@ ", operator];
+
   if (type == UIxFilterFieldTypeSize)
     [sieveRule appendFormat: @"%@K", value];
-  else
+  else if (field)
     [sieveRule appendFormat: @"%@ %@", field, value];
+  else
+    [sieveRule appendFormat: @"%@", value];
 
   return sieveRule;
 }
@@ -431,8 +448,8 @@ static NSString *sieveScriptName = @"sogo";
 
 - (NSString *) _extractSieveAction: (NSDictionary *) action
 {
-  NSString *sieveAction, *method, *requirement, *argument,
-    *flag, *mailbox;
+  NSString *sieveAction, *method, *requirement, *argument, *flag, *mailbox;
+  NSDictionary *mailLabels;
   SOGoDomainDefaults *dd;
 
   sieveAction = nil;
@@ -452,6 +469,12 @@ static NSString *sieveScriptName = @"sogo";
               if ([method isEqualToString: @"addflag"])
                 {
                   flag = [sieveFlags objectForKey: argument];
+                  if (!flag)
+                    {
+                      mailLabels = [[user userDefaults] mailLabelsColors];
+                      if ([mailLabels objectForKey: argument])
+                        flag = argument;
+                    }
                   if (flag)
                     sieveAction = [NSString stringWithFormat: @"%@ %@",
                                             method, [flag asSieveQuotedString]];
@@ -529,24 +552,21 @@ static NSString *sieveScriptName = @"sogo";
     {
       if ([match isEqualToString: @"all"] || [match isEqualToString: @"any"])
         {
-          sieveRules
-            = [self _extractSieveRules: [newScript objectForKey: @"rules"]];
+          sieveRules = [self _extractSieveRules: [newScript objectForKey: @"rules"]];
           if (sieveRules)
             [sieveText appendFormat: @"if %@of (%@) {\r\n",
-                    match,
-                    [sieveRules componentsJoinedByString: @", "]];
+                       match,
+                       [sieveRules componentsJoinedByString: @", "]];
           else
             scriptError = [NSString stringWithFormat:
-                                      @"Test '%@' used without any"
+                                    @"Test '%@' used without any"
                                     @" specified rule",
                                     match];
         }
       else
-        scriptError = [NSString stringWithFormat: @"Bad test: %@",
-                                match];
+        scriptError = [NSString stringWithFormat: @"Bad test: %@", match];
     }
-  sieveActions = [self _extractSieveActions:
-                    [newScript objectForKey: @"actions"]];
+  sieveActions = [self _extractSieveActions: [newScript objectForKey: @"actions"]];
   if ([sieveActions count])
     [sieveText appendFormat: @"    %@;\r\n",
                [sieveActions componentsJoinedByString: @";\r\n    "]];
@@ -565,7 +585,7 @@ static NSString *sieveScriptName = @"sogo";
   int count, max;
   NSDictionary *currentScript;
 
-  sieveScript = [NSMutableString stringWithCapacity: 8192];
+  sieveScript = [NSMutableString string];
 
   ASSIGN (requirements, newRequirements);
   [scriptError release];
@@ -604,34 +624,43 @@ static NSString *sieveScriptName = @"sogo";
 //
 //
 //
-- (BOOL) updateFiltersForLogin: (NSString *) theLogin
-                      authname: (NSString *) theAuthName
-                      password: (NSString *) thePassword
-                       account: (SOGoMailAccount *) theAccount
+- (NGSieveClient *) clientForAccount: (SOGoMailAccount *) theAccount
 {
-  NSMutableArray *req;
-  NSMutableString *script, *header;
-  NSDictionary *result, *values;
-  SOGoUserDefaults *ud;
+  return [self clientForAccount: theAccount withUsername: nil andPassword: nil];
+}
+
+//
+//
+//
+- (NGSieveClient *) clientForAccount: (SOGoMailAccount *) theAccount
+                        withUsername: (NSString *) theUsername
+                         andPassword: (NSString *) thePassword
+{
+  NSDictionary *result;
+  NSString *login, *authname, *password;
   SOGoDomainDefaults *dd;
   NGSieveClient *client;
-  NSString *filterScript, *v, *sieveServer, *sieveScheme, *sieveQuery, *imapServer;
+  NSString *sieveServer, *sieveScheme, *sieveQuery, *imapServer;
   NSURL *url, *cUrl;
-  
   int sievePort;
-  BOOL b, connected;
+  BOOL connected;
 
   dd = [user domainDefaults];
-  if (!([dd sieveScriptsEnabled] || [dd vacationEnabled] || [dd forwardEnabled]))
-    return YES;
-
-  req = [NSMutableArray arrayWithCapacity: 15];
-  ud = [user userDefaults];
-
   connected = YES;
-  b = NO;
 
-  
+  // Extract credentials from mail account
+  login = [[theAccount imap4URL] user];
+  if (!theUsername && !thePassword)
+    {
+      authname = [[theAccount imap4URL] user];
+      password = [theAccount imap4PasswordRenewed: NO];
+    }
+  else
+    {
+      authname = theUsername;
+      password = thePassword;
+    }
+
   // We connect to our Sieve server and check capabilities, in order
   // to generate the right script, based on capabilities
   //
@@ -687,20 +716,20 @@ static NSString *sieveScriptName = @"sogo";
                                sieveScheme, sieveServer, sievePort, sieveQuery]];
 
   client = [[NGSieveClient alloc] initWithURL: url];
-  
+
   if (!client) {
-    NSLog(@"Sieve connection failed on %@", [url description]);
-    return NO;
+    [self errorWithFormat: @"Sieve connection failed on %@", [url description]];
+    return nil;
   }
-  
-  if (!thePassword) {
+
+  if (!password) {
     [client closeConnection];
-    return NO;
+    return nil;
   }
 
   NS_DURING
     {
-      result = [client login: theLogin  authname: theAuthName  password: thePassword];
+      result = [client login: login  authname: authname  password: password];
     }
   NS_HANDLER
     {
@@ -710,23 +739,64 @@ static NSString *sieveScriptName = @"sogo";
 
   if (!connected)
     {
-      NSLog(@"Sieve connection failed on %@", [url description]);
-      return NO;
+      [self errorWithFormat: @"Sieve connection failed on %@", [url description]];
+      return nil;
     }
 
-  if (![[result valueForKey:@"result"] boolValue]) {
-    NSLog(@"failure. Attempting with a renewed password (no authname supported)");
-    thePassword = [theAccount imap4PasswordRenewed: YES];
-    result = [client login: theLogin  password: thePassword];
+  if (![[result valueForKey:@"result"] boolValue] && !theUsername && !thePassword) {
+    [self logWithFormat: @"failure. Attempting with a renewed password (no authname supported)"];
+    password = [theAccount imap4PasswordRenewed: YES];
+    result = [client login: login  password: password];
   }
-  
+
   if (![[result valueForKey:@"result"] boolValue]) {
-    NSLog(@"Could not login '%@' on Sieve server: %@: %@",
-	  theLogin, client, result);
+    [self logWithFormat: @"Could not login '%@' on Sieve server: %@: %@",
+	  login, client, result];
     [client closeConnection];
-    return NO;
+    return nil;
   }
-  
+
+  return [client autorelease];
+}
+
+
+//
+//
+//
+- (BOOL) updateFiltersForAccount: (SOGoMailAccount *) theAccount
+{
+  return [self updateFiltersForAccount: theAccount
+                          withUsername: nil
+                           andPassword: nil];
+}
+
+//
+//
+//
+- (BOOL) updateFiltersForAccount: (SOGoMailAccount *) theAccount
+                    withUsername: (NSString *) theUsername
+                     andPassword: (NSString *) thePassword
+{
+  NSMutableArray *req;
+  NSMutableString *script, *header;
+  NSDictionary *result, *values;
+  SOGoUserDefaults *ud;
+  SOGoDomainDefaults *dd;
+  NGSieveClient *client;
+  NSString *filterScript, *v;
+  BOOL b;
+
+  dd = [user domainDefaults];
+  if (!([dd sieveScriptsEnabled] || [dd vacationEnabled] || [dd forwardEnabled]))
+    return YES;
+
+  req = [NSMutableArray arrayWithCapacity: 15];
+  ud = [user userDefaults];
+
+  client = [self clientForAccount: theAccount  withUsername: theUsername  andPassword: thePassword];
+  if (!client)
+    return NO;
+
   // We adjust the "methodRequirements" based on the server's 
   // capabilities. Cyrus exposes "imapflags" while Dovecot (and
   // potentially others) expose "imap4flags" as specified in RFC5332
@@ -754,7 +824,7 @@ static NSString *sieveScriptName = @"sogo";
     }
   else
     {
-      NSLog(@"Sieve generation failure: %@", [self lastScriptError]);
+      [self errorWithFormat: @"Sieve generation failure: %@", [self lastScriptError]];
       [client closeConnection];
       return NO;
     }
@@ -765,13 +835,16 @@ static NSString *sieveScriptName = @"sogo";
 
   if (values && [[values objectForKey: @"enabled"] boolValue])
     {
+      NSMutableString *vacation_script;
       NSArray *addresses;
       NSString *text;
-      BOOL ignore;
+      
+      BOOL ignore, alwaysSend;
       int days, i;
-            
+      
       days = [[values objectForKey: @"daysBetweenResponse"] intValue];
       addresses = [values objectForKey: @"autoReplyEmailAddresses"];
+      alwaysSend = [[values objectForKey: @"alwaysSend"] boolValue];
       ignore = [[values objectForKey: @"ignoreLists"] boolValue];
       text = [values objectForKey: @"autoReplyText"];
       b = YES;
@@ -779,28 +852,38 @@ static NSString *sieveScriptName = @"sogo";
       if (days == 0)
         days = 7;
 
+      vacation_script = [NSMutableString string];
+      
       [req addObjectUniquely: @"vacation"];
 
       // Skip mailing lists
       if (ignore)
-        [script appendString: @"if allof ( not exists [\"list-help\", \"list-unsubscribe\", \"list-subscribe\", \"list-owner\", \"list-post\", \"list-archive\", \"list-id\", \"Mailing-List\"], not header :comparator \"i;ascii-casemap\" :is \"Precedence\" [\"list\", \"bulk\", \"junk\"], not header :comparator \"i;ascii-casemap\" :matches \"To\" \"Multiple recipients of*\" ) {"];
+        [vacation_script appendString: @"if allof ( not exists [\"list-help\", \"list-unsubscribe\", \"list-subscribe\", \"list-owner\", \"list-post\", \"list-archive\", \"list-id\", \"Mailing-List\"], not header :comparator \"i;ascii-casemap\" :is \"Precedence\" [\"list\", \"bulk\", \"junk\"], not header :comparator \"i;ascii-casemap\" :matches \"To\" \"Multiple recipients of*\" ) {"];
       
-      [script appendFormat: @"vacation :days %d :addresses [", days];
+      [vacation_script appendFormat: @"vacation :days %d :addresses [", days];
 
       for (i = 0; i < [addresses count]; i++)
         {
-          [script appendFormat: @"\"%@\"", [addresses objectAtIndex: i]];
+          [vacation_script appendFormat: @"\"%@\"", [addresses objectAtIndex: i]];
 	  
           if (i == [addresses count]-1)
-            [script appendString: @"] "];
+            [vacation_script appendString: @"] "];
           else
-            [script appendString: @", "];
+            [vacation_script appendString: @", "];
         }
       
-      [script appendFormat: @"text:\r\n%@\r\n.\r\n;\r\n", text];
+      [vacation_script appendFormat: @"text:\r\n%@\r\n.\r\n;\r\n", text];
       
       if (ignore)
-        [script appendString: @"}\r\n"];
+        [vacation_script appendString: @"}\r\n"];
+
+      //
+      // See http://sogo.nu/bugs/view.php?id=2332 for details
+      //
+      if (alwaysSend)
+        [script insertString: vacation_script  atIndex: 0];
+      else
+        [script appendString: vacation_script];
     }
 
 
@@ -844,24 +927,24 @@ static NSString *sieveScriptName = @"sogo";
   result = [client deleteScript: sieveScriptName];
   
   if (![[result valueForKey:@"result"] boolValue]) {
-    NSLog(@"WARNING: Could not delete Sieve script - continuing...: %@", result);
+    [self logWithFormat: @"WARNING: Could not delete Sieve script - continuing...: %@", result];
   }
 
   // We put and activate the script only if we actually have a script
   // that does something...
-  if (b)
+  if (b && [script length])
     {
       result = [client putScript: sieveScriptName  script: script];
       
       if (![[result valueForKey:@"result"] boolValue]) {
-        NSLog(@"Could not upload Sieve script: %@", result);
+        [self logWithFormat: @"Could not upload Sieve script: %@", result];
         [client closeConnection];	
         return NO;
       }
       
       result = [client setActiveScript: sieveScriptName];
       if (![[result valueForKey:@"result"] boolValue]) {
-        NSLog(@"Could not enable Sieve script: %@", result);
+        [self logWithFormat: @"Could not enable Sieve script: %@", result];
         [client closeConnection];
         return NO;
       }

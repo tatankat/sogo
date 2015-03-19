@@ -14,6 +14,12 @@ DIV.bottomToolbar
   right: 2em;
   bottom: 8px; }
 
+#WhiteListAdd, #WhiteListDelete
+{
+  border-bottom: 1px solid #9B9B9B;
+  border-right: 1px solid #9B9B9B;
+}
+
 #mailAccountsToolbar
 { left: 5px;
   bottom: 9px;
@@ -33,12 +39,13 @@ TD.categoryListCell
 { -moz-user-select: none; }
 
 DIV.colorBox
-{ border: 1px solid #333333;
-  font-size: 80%;
-  font-weight: normal;
-  height: 0.75em;
-  margin: 0 3px 0 0;
-  width: 1em; }
+{ -webkit-border-radius: 4px;
+     -moz-border-radius: 4px;
+          border-radius: 4px;
+  border: 2px solid #ccddec; }
+
+DIV.colorBox:hover
+{ border-color: #eee; }
 
 DIV.listWrapper
 { overflow: auto;
@@ -46,13 +53,34 @@ DIV.listWrapper
   padding: 0px;
   margin-top: 2px;
   border-left: 1px solid #9b9b9b;
+  border-right: 1px solid #9b9b9b;
   background: #ccddec;}
 
+.listWrapper TABLE TD
+{ height: 22px; }
+
 #calendarCategoriesListWrapper
-{ top: 210px;
+{ top:1em;
   bottom: 30px;
   right: 2em;
   left: 2em; }
+
+#appointmentsWhiteListWrapper
+{ top:4.5em;
+  bottom: 30px;
+  right: 2em;
+  left: 2em; }
+
+#tableViewWhiteList 
+{ width:100%; }
+
+DIV#calendarOptionsTabs 
+{ position: absolute;
+  top: 225px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+}
 
 #contactsCategoriesListWrapper
 { overflow: auto;
@@ -94,19 +122,33 @@ SPAN.timeDateControl INPUT.textField
 #passwordView BR
 { clear: both; }
 
-/* mail filters */
-DIV#filtersListWrapper
-{ bottom: 30px;
-  right: 2em;
-  top: 208px;
-  left: 2em; }
+/* mail options */
+DIV#mailOptionsTabs
+{ position: absolute;
+  top: 225px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px; }
+
+DIV#filtersListWrapper,
+DIV#mailLabelsListWrapper
+{ bottom: 22px;
+  right: 0px;
+  top: 0px;
+  left: 0px; }
+
+#mailOptionsTabs .bottomToolbar
+{ bottom: 0px;
+  left: 0px;
+  right: 0px; }
 
 DIV#filtersListWrapper TD,
+DIV#mailLabelsListWrapper TD,
 DIV.bottomToolbar
 { -khtml-user-select: none;
   -moz-user-select: none; }
 
-TABLE#filtersList
+#filtersList, #labelsList
 { width: 100%;
   cursor: default; }
 
@@ -199,16 +241,32 @@ P.infoMessage#passwordError
   left: 10px;
   width: auto !important;
   right: 10px;
-  top: 50px; }
+  top: 0px; }
 
 #cke_signature, #cke_signature div
 { padding: 0px; }
 
 #signature
 { width: 100%;
-  height: 90px;
+  height: 170px;
   margin: 0px auto;
   margin-bottom: 10px; }
 
 #receiptOptions
 { text-align: right; }
+
+#colorPickerDialog
+{ width: 146px;
+  height: 191px; }
+
+#colorPickerDialog.dialog.right > DIV
+{ padding-left: 10px; }
+
+.dialog.bottom > DIV:before {
+  top: auto;
+  bottom: 12px;
+}
+.dialog.bottom > DIV:after {
+  top: auto;
+  bottom: 13px;
+}

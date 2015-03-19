@@ -1,8 +1,6 @@
 /* SOGoUserDefaults.h - this file is part of SOGo
  *
- * Copyright (C) 2011-2012 Inverse inc.
- *
- * Author: Wolfgang Sourdeau <wsourdeau@inverse.ca>
+ * Copyright (C) 2011-2014 Inverse inc.
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +25,7 @@
 
 @class NSArray;
 @class NSDictionary;
+@class NSMutableDictionary;
 @class NSString;
 @class NSTimeZone;
 
@@ -88,6 +87,9 @@ extern NSString *SOGoWeekStartFirstFullWeek;
 - (NSString *) language;
 
 /* mail */
+- (void) setMailAddOutgoingAddresses: (BOOL) newValue;
+- (BOOL) mailAddOutgoingAddresses;
+
 - (void) setMailShowSubscribedFoldersOnly: (BOOL) newValue;
 - (BOOL) mailShowSubscribedFoldersOnly;
 
@@ -112,14 +114,20 @@ extern NSString *SOGoWeekStartFirstFullWeek;
 - (void) setMailListViewColumnsOrder: (NSArray *) newValue;
 - (NSArray *) mailListViewColumnsOrder;
 
-- (void) setMailMessageCheck: (NSString *) newValue;
-- (NSString *) mailMessageCheck;
+- (void) setSelectedAddressBook: (NSString *) newValue;
+- (NSString *) selectedAddressBook;
+
+- (void) setRefreshViewCheck: (NSString *) newValue;
+- (NSString *) refreshViewCheck;
 
 - (void) setMailComposeMessageType: (NSString *) newValue;
 - (NSString *) mailComposeMessageType;
 
 - (void) setMailDisplayRemoteInlineImages: (NSString *) newValue;
 - (NSString *) mailDisplayRemoteInlineImages;
+
+- (void) setMailAutoSave: (NSString *) newValue;
+- (NSString *) mailAutoSave;
 
 - (void) setMailMessageForwarding: (NSString *) newValue;
 - (NSString *) mailMessageForwarding;
@@ -166,6 +174,9 @@ extern NSString *SOGoWeekStartFirstFullWeek;
 - (void) setForwardOptions: (NSDictionary *) newValue;
 - (NSDictionary *) forwardOptions;
 
+- (void) setMailLabelsColors: (NSDictionary *) newValues;
+- (NSDictionary *) mailLabelsColors;
+
 /* calendar */
 - (void) setCalendarCategories: (NSArray *) newValues;
 - (NSArray *) calendarCategories;
@@ -182,14 +193,8 @@ extern NSString *SOGoWeekStartFirstFullWeek;
 - (void) setCalendarTasksDefaultClassification: (NSString *) newValue;
 - (NSString *) calendarTasksDefaultClassification;
 
-- (void) setReminderEnabled: (BOOL) newValue;
-- (BOOL) reminderEnabled;
-
-- (void) setReminderTime: (NSString *) newValue;
-- (NSString *) reminderTime;
-
-- (void) setRemindWithASound: (BOOL) newValue;
-- (BOOL) remindWithASound;
+- (void) setCalendarDefaultReminder: (NSString *) newValue;
+- (NSString *) calendarDefaultReminder;
 
 /* contacts */
 - (void) setContactsCategories: (NSArray *) newValues;

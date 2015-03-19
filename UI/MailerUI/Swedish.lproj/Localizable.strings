@@ -76,7 +76,6 @@
 "Remove this folder" = "Ta bort mappen";
 "Erase mails from this folder" = "Radera meddelanden från mappen";
 "Expunge this folder" = "Radera mappen";
-"Archive This Folder" = "Arkivera mappen";
 "Modify the acl of this folder" = "Ändra åtkomsträttigheter på mappen";
 
 "Saved Messages.zip" = "Sparat Messages.zip";
@@ -165,8 +164,6 @@
 "InboxFolderName"  = "Inkorgen";
 "DraftsFolderName" = "Utkast";
 "SieveFolderName"  = "Filter";
-"OtherUsersFolderName"   = "Other Users";
-"SharedFoldersName" = "Shared Folders";
 "Folders"          = "Mappar"; /* title line */
 
 /* MailMoveToPopUp */
@@ -225,11 +222,6 @@
 
 /* Label popup menu */
 "None" = "Inget";
-"Important" = "Viktigt";
-"Work" = "Arbete";
-"Personal" = "Personligt";
-"To Do" = "Att göra";
-"Later" = "Senare";
 
 /* Mark popup menu */
 "As Read" = "Som läst";

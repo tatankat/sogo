@@ -81,6 +81,8 @@ NSArray *SOGoMailCoreInfoKeys;
 
 - (id) bodyStructure;
 - (id) lookupInfoForBodyPart:(id)_path;
+- (id) lookupImap4BodyPartKey: (NSString *) _key
+		    inContext: (id) _ctx;
 
 /* content */
 
@@ -102,7 +104,9 @@ NSArray *SOGoMailCoreInfoKeys;
 - (NSDictionary *) fetchPlainTextParts;
 - (NSDictionary *) fetchPlainTextStrings:(NSArray *)_fetchKeys;
 
-- (NSDictionary *) fetchAttachmentIds;
+- (BOOL) hasAttachment;
+- (NSDictionary *) fetchFileAttachmentIds;
+- (NSArray *) fetchFileAttachmentKeys;
 
 /* flags */
 
@@ -110,6 +114,7 @@ NSArray *SOGoMailCoreInfoKeys;
 - (NSException *) removeFlags:(id)_f;
 
 - (BOOL) isNewMail;  /* \Recent */
+- (BOOL) flagged;    /* \Flagged */
 - (BOOL) read;       /* \Unseen */
 - (BOOL) replied;    /* \Answered */
 - (BOOL) forwarded;  /* $forwarded */

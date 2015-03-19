@@ -1,0 +1,158 @@
+{
+  blobTablePattern   = "SOGo_$folderId$_blob";
+  quickTablePattern  = "SOGo_$folderId$_quick";
+  extractorClassName = "OCSiCalFieldExtractor";
+
+  fields = (
+    {
+      columnName = c_name;
+      sqlType    = "VARCHAR(255)";
+      allowsNull = NO;
+      isPrimaryKey = YES;
+    },
+    {
+      columnName = c_content;
+      sqlType    = "TEXT";
+      allowsNull = NO;
+      isPrimaryKey = NO;
+    },
+    {
+      columnName = c_creationdate;
+      sqlType    = "INT4";
+      allowsNull = NO;
+      isPrimaryKey = NO;
+    },
+    {
+      columnName = c_lastmodified;
+      sqlType    = "INT4";
+      allowsNull = NO;
+      isPrimaryKey = NO;
+    },
+    {
+      columnName = c_version;
+      sqlType    = "INT4";
+      allowsNull = NO;
+      isPrimaryKey = NO;
+    },
+    {
+      columnName = c_deleted;
+      sqlType    = "INT4";
+      allowsNull = YES;
+      isPrimaryKey = NO;
+    }
+   );
+
+  quickFields = (
+    {
+      columnName = c_name;
+      sqlType    = "VARCHAR(255)";
+      allowsNull = NO;
+      isPrimaryKey = YES;
+    },
+    {
+      columnName = c_uid;
+      sqlType    = "VARCHAR(255)";
+      allowsNull = NO;
+    },
+    {
+      columnName = c_startdate;
+      sqlType    = "INT";
+      allowsNull = YES;
+    },
+    {
+      columnName = c_enddate;
+      sqlType    = "INT";
+      allowsNull = YES;
+    },
+    {
+      columnName = c_cycleenddate;
+      sqlType    = "INT";
+      allowsNull = YES;
+    },
+    {
+      columnName = c_title;
+      sqlType    = "VARCHAR(1000)";
+      allowsNull = NO;
+    },
+    {
+      columnName = c_participants;
+      sqlType    = "TEXT";
+      allowsNull = YES;
+    },
+    {
+      columnName = c_isallday;
+      sqlType    = "INT";
+      allowsNull = YES;
+    },
+    {
+      columnName = c_iscycle;
+      sqlType    = "INT";
+      allowsNull = YES;
+    },
+    {
+      columnName = c_cycleinfo;
+      sqlType    = "TEXT";
+      allowsNull = YES;
+    },
+    {
+      columnName = c_classification;
+      sqlType    = "INT";
+      allowsNull = NO;
+    },
+    {
+      columnName = c_isopaque;
+      sqlType    = "INT";
+      allowsNull = NO;
+    },
+    {
+      columnName = c_status;
+      sqlType    = "INT";
+      allowsNull = NO;
+    },
+    {
+      columnName = c_priority;
+      sqlType    = "INT";
+      allowsNull = YES;
+    },
+    {
+      columnName = c_location;
+      sqlType    = "VARCHAR(255)";
+      allowsNull = YES;
+    },
+    {
+      columnName = c_orgmail;
+      sqlType    = "VARCHAR(255)";
+      allowsNull = YES;
+    },
+    {
+      columnName = c_partmails;
+      sqlType    = "TEXT";
+      allowsNull = YES;
+    },
+    {
+      columnName = c_partstates;
+      sqlType    = "VARCHAR(255)";
+      allowsNull = YES;
+    },
+    {
+      columnName = c_category;
+      sqlType    = "VARCHAR(255)";
+      allowsNull = YES;
+    },
+    {
+      columnName = c_sequence;
+      sqlType    = "INT";
+      allowsNull = YES;
+    },
+    {
+      columnName = c_component;
+      sqlType    = "VARCHAR(10)";
+      allowsNull = NO;
+    },
+    {
+      columnName = c_nextalarm;
+      sqlType    = "INT";
+      allowsNull = YES;
+    }
+  );
+}

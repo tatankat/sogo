@@ -1,8 +1,6 @@
 /* WORequest+SOGo.m - this file is part of SOGo
  *
- * Copyright (C) 2007-2010 Inverse inc.
- *
- * Author: Wolfgang Sourdeau <wsourdeau@inverse.ca>
+ * Copyright (C) 2007-2015 Inverse inc.
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +35,7 @@
 - (BOOL) handledByDefaultHandler
 {
 #warning this should be changed someday
-  return ![[self requestHandlerKey] isEqualToString:@"dav"];
+  return !([[self requestHandlerKey] isEqualToString: @"dav"] || [[self requestHandlerKey] isEqualToString: @"Microsoft-Server-ActiveSync"]);
 }
 
 - (NSArray *) _propertiesOfElement: (id <DOMElement>) startElement
@@ -129,9 +127,14 @@
 	 || [self isAppleDAVWithSubstring: @"iOS/"];
 }
 
+//
+// Mac+OS+X/10.10.1 (14B25) CalendarAgent/315
+//
 - (BOOL) isICal
 {
   return ([self isAppleDAVWithSubstring: @"Mac OS X/10."]
+          || [self isAppleDAVWithSubstring: @"Mac_OS_X/"]
+          || [self isAppleDAVWithSubstring: @"Mac+OS+X/"]
           || [self isAppleDAVWithSubstring: @"CoreDAV/"]);
 }
 

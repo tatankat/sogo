@@ -270,7 +270,7 @@ genConfigMake() {
   fi
 
   cfgwrite "HOSTNAME=${HOSTNAME}"
-  cfgwrite "SOGO_SYSLIBDIR=\${GNUSTEP_LIBRARIES}"
+  cfgwrite "SOGO_SYSLIBDIR=\${GNUSTEP_SYSTEM_LIBRARIES}"
   cfgwrite "SOGO_LIBDIR=\${GNUSTEP_LIBRARY}/SOGo"
   cfgwrite "SOGO_TEMPLATESDIR=\${SOGO_LIBDIR}/Templates"
   cfgwrite "SOGO_WEBSERVERRESOURCESDIR=\${SOGO_LIBDIR}/WebServerResources"
@@ -381,7 +381,7 @@ checkDependencies() {
       if test $? = 0; then
           lasso_cflags="`pkg-config lasso --cflags`"
           cfgwrite "LASSO_CFLAGS := $lasso_cflags"
-          lasso_libs="`pkg-config lasso --libs`"
+          lasso_libs="`pkg-config lasso --libs` `pkg-config gobject-2.0 --libs`"
           cfgwrite "LASSO_LIBS := $lasso_libs"
       fi;
   fi

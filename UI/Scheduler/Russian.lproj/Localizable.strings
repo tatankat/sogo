@@ -5,6 +5,7 @@
 "Create a new event" = "Создать новое событие";
 "Create a new task" = "Создать новую задачу";
 "Edit this event or task" = "Редактировать это событие или задачу";
+"Print the current calendar view" = "Напечатать календарь в этом виде";
 "Delete this event or task" = "Удалить это событие или задачу";
 "Go to today" = "Перейти на сегодня";
 "Switch to day view" = "Перейти к обзору дня";
@@ -90,7 +91,7 @@
 
 "label_Public" = "Публичное событие";
 "label_Private" = "Личное событие";
-"label_Confidential" = "Показывать только время и дату";
+"label_Confidential" = "Конфиденциальное";
 
 "label_Viewer" = "Показать все";
 "label_DAndTViewer" = "Показать дату и время";
@@ -117,7 +118,7 @@
 "Name of the Calendar" = "Название календаря";
 
 "new" = "Новый";
-"printview" = "Печатать";
+"Print view" = "Печать видимой области";
 "edit" = "Изменить";
 "delete" = "Удалить";
 "proposal" = "Предложение";
@@ -145,6 +146,20 @@
 "Hide already accepted and rejected appointments" = "Скрыть согласившихся и отказавшихся.";
 "Show already accepted and rejected appointments" = "Показать согласившихся и отказавшихся.";
 
+/* Print view */
+
+"LIST" = "Список";
+"Print Settings" = "Настройки печати";
+"Title:" = "Заголовок:";
+"Layout:" = "Разметка:";
+"What to Print" = "Что печатать";
+"Options" = "Опции";
+"Tasks with no due date" = "Задачи без указания времени окончания";
+"Display working hours only" = "Показывать только рабочие часы";
+"Completed tasks" = "Выполненные задачи";
+"Display events and tasks colors" = "Показывать цвета событий и задач";
+"Borders" = "Границы";
+"Backgrounds" = "Условия";
 
 /* Appointments */
 
@@ -225,8 +240,13 @@
 "view_future" = "Все будущие мероприятия";
 "view_selectedday" = "Выбранный день";
 
+"view_not_started" = "Не начатые задачи";
+"view_overdue" = "Просроченные задачи";
+"view_incomplete" = "Незаконченные задачи";
+
 "View:" = "Вид:";
-"Title or Description" = "Заголовок или описание";
+"Title, category or location" = "Заголовок, категория или место";
+"Entire content" = "Всё содержимое";
 
 "Search" = "Поиск";
 "Search attendees" = "Поиск участников";
@@ -416,8 +436,9 @@ validate_endbeforestart    = "Дата начала позже даты конц
 "Workweek days only" = "Только рабочие дни недели";
 "Tasks in View" = "Задания в виде";
 
-"eventDeleteConfirmation" = "Следующие события будут удалены: \n%{0}\nПродолжить удаление?";
-"taskDeleteConfirmation" = "Событие будет удалено безвозвратно.\nПродолжить?";
+"eventDeleteConfirmation" = "Следующие события будут удалены:";
+"taskDeleteConfirmation" = "Событие будет удалено безвозвратно.";
+"Would you like to continue?" = "Продолжить?";
 
 "You cannot remove nor unsubscribe from your personal calendar."
 = "Вы не можете удалить персональный календарь, равно как и выключить подписку на него.";
@@ -505,7 +526,7 @@ vtodo_class2 = "(Конфиденциальное задание)";
 
 "Links to this Calendar" = "Ссылки на этот календарь";
 "Authenticated User Access" = "Доступ авторизированных пользователей";
-"CalDAV URL" = "CalDAV url";
+"CalDAV URL" = "CalDAV URL: ";
 "WebDAV ICS URL" = "WebDAV ICS URL";
 "WebDAV XML URL" = "WebDAV XML URL";
 
@@ -525,6 +546,8 @@ vtodo_class2 = "(Конфиденциальное задание)";
 "tagWasRemoved" = "Если вы удалите этот календарь, то будет необходимо заново синхронизировать данные на Вашем мобильном устройстве.\n Продолжить?";
 "DestinationCalendarError" = "Исходный и целевой календари совпадают. Пожалуйста, выберите другой целевой календарь.";
 "EventCopyError" = "Копирование не удалось. Пожалуйста, попытайтесь скопировать в другой календарь.";
+"Please select at least one calendar" = "Выберите хотя бы один календарь";
+
 
 "Open Task..." = "Открыть задание...";
 "Mark Completed" = "Пометить как завершенное";

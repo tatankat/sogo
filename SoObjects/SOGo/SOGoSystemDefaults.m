@@ -1,10 +1,7 @@
 /* SOGoSystemDefaults.m - this file is part of SOGo
  *
- * Copyright (C) 2009-2013 Inverse inc.
+ * Copyright (C) 2009-2014 Inverse inc.
  * Copyright (C) 2012 Jeroen Dekkers <jeroen@dekkers.ch>
- *
- * Author: Wolfgang Sourdeau <wsourdeau@inverse.ca>
- *         Francis Lachapelle <flachapelle@inverse.ca>
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -359,6 +356,12 @@ _injectConfigurationFromFile (NSMutableDictionary *defaultsDict,
   return [self boolForKey: @"WOUseRelativeURLs"];
 }
 
+- (NSString *) sieveFolderEncoding
+{
+  return [self stringForKey: @"SOGoSieveFolderEncoding"];
+}
+
+
 - (BOOL) isWebAccessEnabled
 {
   return [self boolForKey: @"SOGoWebAccessEnabled"];
@@ -508,6 +511,16 @@ _injectConfigurationFromFile (NSMutableDictionary *defaultsDict,
   return [self boolForKey: @"SOGoSAML2LogoutEnabled"];
 }
 
+- (NSString *) SAML2LogoutURL
+{
+  return [self stringForKey: @"SOGoSAML2LogoutURL"];
+}
+
+- (NSString *) SAML2LoginAttribute
+{
+  return [self stringForKey: @"SOGoSAML2LoginAttribute"];
+}
+
 - (BOOL) enablePublicAccess
 {
   return [self boolForKey: @"SOGoEnablePublicAccess"];
@@ -579,6 +592,59 @@ _injectConfigurationFromFile (NSMutableDictionary *defaultsDict,
   if (!v)
     v = 300;
 
+  return v;
+}
+
+- (int) maximumPingInterval
+{
+  int v;
+
+  v = [self integerForKey: @"SOGoMaximumPingInterval"];
+
+  if (!v)
+    v = 10;
+
+  return v;
+}
+
+- (int) maximumSyncInterval
+{
+  int v;
+
+  v = [self integerForKey: @"SOGoMaximumSyncInterval"];
+
+  if (!v)
+    v = 30;
+
+  return v;
+}
+
+- (int) internalSyncInterval
+{
+  int v;
+
+  v = [self integerForKey: @"SOGoInternalSyncInterval"];
+
+  if (!v)
+    v = 10;
+
+  return v;
+}
+
+- (int) maximumSyncWindowSize
+{
+  return [self integerForKey: @"SOGoMaximumSyncWindowSize"];
+}
+
+- (int) maximumSyncResponseSize
+{
+  int v;
+
+  v = [self integerForKey: @"SOGoMaximumSyncResponseSize"];
+
+  if (v > 0)
+    v = v * 1024;
+  
   return v;
 }
 

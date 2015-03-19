@@ -5,6 +5,7 @@
 "Create a new event" = "Créer un nouvel événement";
 "Create a new task" = "Créer une nouvelle tâche";
 "Edit this event or task" = "Modifier l'événement ou la tâche sélectionnée";
+"Print the current calendar view" = "Imprimer la vue courante du calendrier";
 "Delete this event or task" = "Supprimer l'événement ou la tâche sélectionnée";
 "Go to today" = "Revenir à la date d'aujourd'hui";
 "Switch to day view" = "Afficher la journée";
@@ -117,7 +118,7 @@
 "Name of the Calendar" = "Nom de l'agenda";
 
 "new" = "Nouveau";
-"printview" = "Version imprimable";
+"Print view" = "Imprimer";
 "edit" = "Éditer";
 "delete" = "Supprimer";
 "proposal" = "Recherche de plages horaires";
@@ -145,6 +146,20 @@
 "Hide already accepted and rejected appointments" = "Cacher les invitations refusées";
 "Show already accepted and rejected appointments" = "Montrer aussi les invitations refusées";
 
+/* Print view */
+
+"LIST" = "Liste";
+"Print Settings" = "Paramètres d'impression";
+"Title:" = "Titre :";
+"Layout:" = "Vue :";
+"What to Print" = "Contenu";
+"Options" = "Options";
+"Tasks with no due date" = "Tâches sans date d'échéance";
+"Display working hours only" = "Afficher les heures de bureau seulement";
+"Completed tasks" = "Tâches complétées";
+"Display events and tasks colors" = "Affichage en couleurs";
+"Borders" = "Bordures";
+"Backgrounds" = "Arrière-plans";
 
 /* Appointments */
 
@@ -225,8 +240,13 @@
 "view_future" = "Tous les événements futurs";
 "view_selectedday" = "Jour courant";
 
+"view_not_started" = "Tâches non-commencées";
+"view_overdue" = "Tâches en retard";
+"view_incomplete" = "Tâches à compléter";
+
 "View:" = "Voir :";
-"Title or Description" = "Le titre ou la description";
+"Title, category or location" = "Titre, catégorie ou lieu";
+"Entire content" = "Tout le contenu";
 
 "Search" = "Rechercher";
 "Search attendees" = "Recherche de participants";
@@ -416,8 +436,9 @@ validate_endbeforestart    = "La date de fin est avant la date de début.";
 "Workweek days only" = "Semaine de travail seulement";
 "Tasks in View" = "Afficher les tâches";
 
-"eventDeleteConfirmation" = "Le ou les événements suivants seront supprimés :\n%{0}\nVoulez-vous continuer?";
-"taskDeleteConfirmation" = "Le ou les tâches suivantes seront supprimées :\n%{0}\nVoulez-vous continuer?";
+"eventDeleteConfirmation" = "Le ou les événements suivants seront supprimés :";
+"taskDeleteConfirmation" = "Le ou les tâches suivantes seront supprimées :";
+"Would you like to continue?" = "Voulez-vous continuer?";
 
 "You cannot remove nor unsubscribe from your personal calendar."
 = "Vous ne pouvez pas supprimer ni vous désabonner de votre agenda personnel.";
@@ -505,7 +526,7 @@ vtodo_class2 = "(Tâche confidentielle)";
 
 "Links to this Calendar" = "Liens vers cet agenda";
 "Authenticated User Access" = "Accès aux utilisateurs authentifiés";
-"CalDAV URL" = "Accès en CalDAV";
+"CalDAV URL" = "Accès en CalDAV :";
 "WebDAV ICS URL" = "Représentation ICS en WebDAV";
 "WebDAV XML URL" = "Représentation XML en WebDAV";
 
@@ -525,6 +546,8 @@ vtodo_class2 = "(Tâche confidentielle)";
 "tagWasRemoved" = "Afin de ne plus synchroniser ce calendrier, vous devrez recharger les données sur votre appareil mobile.\nVoulez-vous continuer?";
 "DestinationCalendarError" = "Le calendrier de destination est le même que celui de l'événement. Choisissez un calendrier de destination différent.";
 "EventCopyError" = "La copie a échouée. Choisissez un calendrier de destination différent.";
+"Please select at least one calendar" = "Veuillez sélectionner au moins un calendrier.";
+
 
 "Open Task..." = "Ouvrir la tâche...";
 "Mark Completed" = "Marquer comme accomplie";

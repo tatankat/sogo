@@ -1,8 +1,7 @@
 /* UIxCalMainView.m - this file is part of SOGo
  *
- * Copyright (C) 2006-2009 Inverse inc.
+ * Copyright (C) 2006-2014 Inverse inc.
  *
- * Author: Wolfgang Sourdeau <wsourdeau@inverse.ca>
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +22,7 @@
 #import <Foundation/NSArray.h>
 #import <Foundation/NSCalendarDate.h>
 #import <Foundation/NSDictionary.h>
+#import <Foundation/NSKeyValueCoding.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSTimeZone.h>
 #import <Foundation/NSValue.h>
@@ -79,6 +79,14 @@
     }
 }
 
+- (NSString *) localeCode
+{
+  // WARNING : NSLocaleCode is not defined in <Foundation/NSUserDefaults.h>
+  // Region subtag must be separated by a dash
+  NSString *s = [locale objectForKey: @"NSLocaleCode"];
+  return [s stringByReplacingOccurrencesOfString: @"_" withString: @"-"];
+}
+
 - (NSArray *) monthMenuItems
 {
   static NSMutableArray *monthMenuItems = nil;
@@ -124,6 +132,30 @@
     }
 
   return yearMenuItems;
+}
+
+- (NSArray *) tasksFilters
+{
+  return [NSArray arrayWithObjects: @"view_all", @"view_today", @"view_next7",
+                                    @"view_next14", @"view_next31", @"view_thismonth",
+                                    @"view_not_started", @"view_overdue", @"view_incomplete", nil];
+}
+
+- (NSString *) tasksFilterLabel
+{
+  return [self labelForKey: [self valueForKey: @"taskFilter"]];
+}
+
+- (NSString *) selectedTasksFilter
+{
+  NSString *selectedFilter;
+  
+  selectedFilter = [self queryParameterForKey: @"tasksFilterpopup"];
+
+  if (![selectedFilter length])
+    selectedFilter = @"view_today";
+  
+  return selectedFilter;
 }
 
 - (void) setYearMenuItem: (NSNumber *) aYearMenuItem

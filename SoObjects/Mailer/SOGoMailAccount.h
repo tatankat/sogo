@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2009-2011 Inverse inc.
+  Copyright (C) 2009-2014 Inverse inc.
   Copyright (C) 2004-2005 SKYRIX Software AG
 
   This file is part of SOGo.
@@ -71,6 +71,8 @@ typedef enum {
 
 - (id) getInboxQuota;
 - (BOOL) updateFilters;
+- (BOOL) updateFiltersWithUsername: (NSString *) theUsername
+                       andPassword: (NSString *) thePassword;
 
 - (NSArray *) identities;
 - (NSString *) signature;
@@ -80,10 +82,13 @@ typedef enum {
 - (NSArray *) toManyRelationshipKeysWithNamespaces: (BOOL) withNSs;
 
 - (NSArray *) allFolderPaths;
+- (NSArray *) allFoldersMetadata;
+
+- (NSDictionary *) imapFolderGUIDs;
+
 - (BOOL) isInDraftsFolder;
 
 /* special folders */
-
 - (NSString *) inboxFolderNameInContext: (id)_ctx;
 - (NSString *) draftsFolderNameInContext: (id)_ctx;
 - (NSString *) sentFolderNameInContext: (id)_ctx;

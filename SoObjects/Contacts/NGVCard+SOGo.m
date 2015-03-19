@@ -1,8 +1,6 @@
 /* NGVCard+SOGo.m - this file is part of SOGo
  *
- * Copyright (C) 2009 Inverse inc.
- *
- * Author: Cyril Robert <crobert@inverse.ca>
+ * Copyright (C) 2009-2014 Inverse inc.
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,8 +24,13 @@
 #import <Foundation/NSEnumerator.h>
 #import <Foundation/NSString.h>
 
+#import <NGExtensions/NSNull+misc.h>
+
 #import <NGCards/NSArray+NGCards.h>
 #import <NGCards/NSString+NGCards.h>
+
+#import <SOGo/NSArray+Utilities.h>
+#import <SOGo/NSCalendarDate+SOGo.h>
 
 #import "NSDictionary+LDIF.h"
 
@@ -164,8 +167,8 @@ convention:
 @implementation NGVCard (SOGoExtensions)
 
 /* LDIF -> VCARD */
-- (CardElement *) _elementWithTag: (NSString *) elementTag
-                           ofType: (NSString *) type
+- (CardElement *) elementWithTag: (NSString *) elementTag
+                          ofType: (NSString *) type
 {
   NSArray *elements;
   CardElement *element;
@@ -188,16 +191,16 @@ convention:
 {
   CardElement *phone;
 
-  phone = [self _elementWithTag: @"tel" ofType: @"work"];
+  phone = [self elementWithTag: @"tel" ofType: @"work"];
   [phone setSingleValue: [ldifRecord objectForKey: @"telephonenumber"] forKey: @""];
-  phone = [self _elementWithTag: @"tel" ofType: @"home"];
+  phone = [self elementWithTag: @"tel" ofType: @"home"];
   [phone setSingleValue: [ldifRecord objectForKey: @"homephone"] forKey: @""];
-  phone = [self _elementWithTag: @"tel" ofType: @"cell"];
+  phone = [self elementWithTag: @"tel" ofType: @"cell"];
   [phone setSingleValue: [ldifRecord objectForKey: @"mobile"] forKey: @""];
-  phone = [self _elementWithTag: @"tel" ofType: @"fax"];
+  phone = [self elementWithTag: @"tel" ofType: @"fax"];
   [phone setSingleValue: [ldifRecord objectForKey: @"facsimiletelephonenumber"]
                  forKey: @""];
-  phone = [self _elementWithTag: @"tel" ofType: @"pager"];
+  phone = [self elementWithTag: @"tel" ofType: @"pager"];
   [phone setSingleValue: [ldifRecord objectForKey: @"pager"] forKey: @""];
 }
 
@@ -205,9 +208,9 @@ convention:
 {
   CardElement *mail, *homeMail;
 
-  mail = [self _elementWithTag: @"email" ofType: @"work"];
+  mail = [self elementWithTag: @"email" ofType: @"work"];
   [mail setSingleValue: [ldifRecord objectForKey: @"mail"] forKey: @""];
-  homeMail = [self _elementWithTag: @"email" ofType: @"home"];
+  homeMail = [self elementWithTag: @"email" ofType: @"home"];
   [homeMail setSingleValue: [ldifRecord objectForKey: @"mozillasecondemail"] forKey: @""];
   [[self uniqueChildWithTag: @"x-mozilla-html"]
     setSingleValue: [ldifRecord objectForKey: @"mozillausehtmlmail"]
@@ -230,7 +233,7 @@ convention:
   [self setFn: [ldifRecord objectForKey: @"displayname"]];
   [self setTitle: [ldifRecord objectForKey: @"title"]];  
 
-  element = [self _elementWithTag: @"adr" ofType: @"home"];
+  element = [self elementWithTag: @"adr" ofType: @"home"];
   [element setSingleValue: [ldifRecord objectForKey: @"mozillahomestreet2"]
                   atIndex: 1 forKey: @""];
   [element setSingleValue: [ldifRecord objectForKey: @"mozillahomestreet"]
@@ -244,7 +247,7 @@ convention:
   [element setSingleValue: [ldifRecord objectForKey: @"mozillahomecountryname"]
                   atIndex: 6 forKey: @""];
 
-  element = [self _elementWithTag: @"adr" ofType: @"work"];
+  element = [self elementWithTag: @"adr" ofType: @"work"];
   [element setSingleValue: [ldifRecord objectForKey: @"mozillaworkstreet2"]
                   atIndex: 1 forKey: @""];
   [element setSingleValue: [ldifRecord objectForKey: @"street"]
@@ -268,9 +271,9 @@ convention:
 
   [self _setPhoneValues: ldifRecord];
   [self _setEmails: ldifRecord];
-  [[self _elementWithTag: @"url" ofType: @"home"]
+  [[self elementWithTag: @"url" ofType: @"home"]
     setSingleValue: [ldifRecord objectForKey: @"mozillahomeurl"] forKey: @""];
-  [[self _elementWithTag: @"url" ofType: @"work"]
+  [[self elementWithTag: @"url" ofType: @"work"]
     setSingleValue: [ldifRecord objectForKey: @"mozillaworkurl"] forKey: @""];
   
   [[self uniqueChildWithTag: @"x-aim"]
@@ -637,6 +640,203 @@ convention:
   [ldifRecord setObject: dn forKey: @"dn"];
 
   return ldifRecord;
+}
+
+- (NSString *) workCompany
+{
+  CardElement *org;
+  NSString *company;
+  
+  org = [self org];
+  company = [org flattenedValueAtIndex: 0 forKey: @""];
+  if ([company length] == 0)
+    company = nil;
+
+  return company;
+}
+
+- (NSString *) fullName
+{
+  CardElement *n;
+  NSString *fn, *firstName, *lastName, *org;
+  
+  fn = [self fn];
+  if ([fn length] == 0)
+    {
+      n = [self n];
+      lastName = [n flattenedValueAtIndex: 0 forKey: @""];
+      firstName = [n flattenedValueAtIndex: 1 forKey: @""];
+      if ([firstName length] > 0)
+        {
+          if ([lastName length] > 0)
+            fn = [NSString stringWithFormat: @"%@ %@", firstName, lastName];
+          else
+            fn = firstName;
+        }
+      else if ([lastName length] > 0)
+        fn = lastName;
+      else
+        {
+          n = [self org];
+          org = [n flattenedValueAtIndex: 0 forKey: @""];
+          fn = org;
+        }
+    }
+
+  return fn;
+}
+
+- (NSArray *) secondaryEmails
+{
+  NSMutableArray *emails;
+  NSString *email;
+  int i;
+
+  emails = [NSMutableArray array];
+
+  [emails addObjectsFromArray: [self childrenWithTag: @"email"]];
+  [emails removeObjectsInArray: [self childrenWithTag: @"email"
+                                         andAttribute: @"type"
+                                          havingValue: @"pref"]];
+  
+  for (i = [emails count]-1; i >= 0; i--)
+    {
+      email = [[emails objectAtIndex: i] flattenedValuesForKey: @""];
+      
+      if ([email caseInsensitiveCompare: [self preferredEMail]] == NSOrderedSame)
+        [emails removeObjectAtIndex: i];
+    }
+
+  return emails;
+}
+
+- (NSString *) _phoneOfType: (NSString *) aType
+		  excluding: (NSString *) aTypeToExclude
+{
+  NSArray *elements, *phones;
+  NSString *phone;
+
+  phones = [self childrenWithTag: @"tel"];
+  elements = [phones cardElementsWithAttribute: @"type"
+                     havingValue: aType];
+
+  phone = nil;
+
+  if ([elements count] > 0)
+    {
+      CardElement *ce;
+      int i;
+
+      for (i = 0; i < [elements count]; i++)
+	{
+	  ce = [elements objectAtIndex: i];
+	  phone = [ce flattenedValuesForKey: @""];
+
+	  if (!aTypeToExclude)
+	    break;
+	  
+	  if (![ce hasAttribute: @"type" havingValue: aTypeToExclude])
+	    break;
+
+	  phone = nil;
+	}
+    }
+
+  return phone;
+}
+
+- (NSString *) workPhone
+{
+  // We do this (exclude FAX) in order to avoid setting the WORK number as the FAX
+  // one if we do see the FAX field BEFORE the WORK number.
+  return [self _phoneOfType: @"work" excluding: @"fax"];
+}
+
+- (NSString *) homePhone
+{
+  return [self _phoneOfType: @"home" excluding: @"fax"];
+}
+
+- (NSString *) fax
+{
+  return [self _phoneOfType: @"fax" excluding: nil];
+}
+
+- (NSString *) mobile
+{
+  return [self _phoneOfType: @"cell" excluding: nil];
+}
+
+- (NSString *) pager
+{
+  return [self _phoneOfType: @"pager" excluding: nil];
+}
+
+- (NSCalendarDate *) birthday
+{
+  NSString *bday, *value;
+  NSCalendarDate *date;
+
+  bday = [self bday];
+  date = nil;
+  if ([bday length] > 0)
+    {
+      // Expected format of BDAY is YYYY[-]MM[-]DD
+      value = [bday stringByReplacingString: @"-" withString: @""];
+      date = [NSCalendarDate dateFromShortDateString: value
+                                  andShortTimeString: nil
+                                          inTimeZone: nil];
+    }
+  
+  return date;
+}
+
+- (NSMutableDictionary *) quickRecordFromContent: (NSString *) theContent
+                                       container: (id) theContainer
+{
+  NSMutableDictionary *fields;
+  CardElement *element;
+  NSString *value;
+  NSArray *v;
+
+  fields = [NSMutableDictionary dictionaryWithCapacity: 16];
+
+  value = [self fn];
+  if (value)
+    [fields setObject: value forKey: @"c_cn"];
+  element = [self n];
+  [fields setObject: [element flattenedValueAtIndex: 0 forKey: @""]
+             forKey: @"c_sn"];
+  [fields setObject: [element flattenedValueAtIndex: 1 forKey: @""]
+             forKey: @"c_givenName"];
+  value = [self preferredTel];
+  if (value)
+    [fields setObject: value forKey: @"c_telephonenumber"];
+  value = [self preferredEMail];
+  if (![value isNotNull])
+    value = @"";
+  [fields setObject: value forKey: @"c_mail"];
+  element = [self org];
+  [fields setObject: [element flattenedValueAtIndex: 0 forKey: @""]
+             forKey: @"c_o"];
+  [fields setObject: [element flattenedValueAtIndex: 1 forKey: @""]
+             forKey: @"c_ou"];
+  element = [self preferredAdr];
+  if (element && ![element isVoid])
+    [fields setObject: [element flattenedValueAtIndex: 3
+                                               forKey: @""]
+               forKey: @"c_l"];
+  value = [[self uniqueChildWithTag: @"X-AIM"] flattenedValuesForKey: @""];
+  [fields setObject: value forKey: @"c_screenname"];
+  v = [[self categories] trimmedComponents];
+  if ([v count] > 0)
+    [fields setObject: [v componentsJoinedByString: @","]
+               forKey: @"c_categories"];
+  else
+    [fields setObject: [NSNull null] forKey: @"c_categories"];
+  [fields setObject: @"vcard" forKey: @"c_component"];
+
+  return fields;
 }
 
 @end /* NGVCard */

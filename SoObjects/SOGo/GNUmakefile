@@ -11,11 +11,20 @@ SOGo_VERSION=$(MAJOR_VERSION).$(MINOR_VERSION).$(SUBMINOR_VERSION)
 #SOGo_INSTALL_DIR = $(SOGO_LIBDIR)
 SOGo_INSTALL_DIR = $(DESTDIR)$(GNUSTEP_$(GNUSTEP_INSTALLATION_DOMAIN)_FRAMEWORKS)
 
+ADDITIONAL_LDFLAGS += -Wl,--rpath,$(SOGO_SYSLIBDIR)/sogo
+
 SOGo_HEADER_FILES = \
 	SOGoBuild.h \
 	SOGoProductLoader.h		\
 	\
+	BSONCodec.h			\
+	EOBitmaskQualifier.h 		\
+	EOQualifier+SOGoCacheObject.h 	\
+	GCSSpecialQueries+SOGoCacheObject.h \
 	SOGoCache.h			\
+	SOGoCacheGCSFolder.h		\
+	SOGoCacheGCSObject.h		\
+	SOGoCacheObject.h		\
 	SOGoConstants.h			\
 	SOGoObject.h			\
 	SOGoContentObject.h		\
@@ -68,11 +77,10 @@ SOGo_HEADER_FILES = \
 	WORequest+SOGo.h		\
 	WOResourceManager+SOGo.h	\
 	WOResponse+SOGo.h		\
-	WOContext+SOGo.h	\
+	WOContext+SOGo.h		\
 	\
 	SOGoCredentialsFile.h
 
-# daemon tool
 all::
 	@touch SOGoBuild.m
 
@@ -80,7 +88,14 @@ SOGo_OBJC_FILES = \
 	SOGoBuild.m \
 	SOGoProductLoader.m		\
 	\
+	BSONCodec.m			\
+	EOBitmaskQualifier.m		\
+	EOQualifier+SOGoCacheObject.m	\
+	GCSSpecialQueries+SOGoCacheObject.m \
 	SOGoCache.m			\
+	SOGoCacheGCSFolder.m		\
+	SOGoCacheGCSObject.m		\
+	SOGoCacheObject.m		\
 	SOGoConstants.m			\
 	SOGoObject.m			\
 	SOGoContentObject.m		\
@@ -140,10 +155,11 @@ SOGo_OBJC_FILES = \
 	WORequest+SOGo.m		\
 	WOResourceManager+SOGo.m	\
 	WOResponse+SOGo.m		\
-	WOContext+SOGo.m	\
+	WOContext+SOGo.m		\
 	\
 	SOGoCredentialsFile.m
 
+SOGo_C_FILES = lmhash.c
 
 SOGo_RESOURCE_FILES = \
 	SOGoDefaults.plist \
@@ -157,6 +173,9 @@ ifeq ($(saml2_config), yes)
 
 SOGoSAML2Exceptions.h SOGoSAML2Exceptions.m: gen-saml2-exceptions.py
 	$(ECHO_CREATING) ./gen-saml2-exceptions.py $(LASSO_CFLAGS) $(END_ECHO)
+
+distclean clean::
+	-rm -f SOGoSAML2Exceptions.h SOGoSAML2Exceptions.m
 
 endif
 
@@ -183,6 +202,7 @@ ADDITIONAL_LDFLAGS += -lmemcached
 ifneq ($(FHS_INSTALL_ROOT),)
 GNUSTEP_HEADERS=$(DESTDIR)$(FHS_INSTALL_ROOT)/include
 endif
+GNUSTEP_TARGET_LDIR=sogo
 include $(GNUSTEP_MAKEFILES)/framework.make
 include $(GNUSTEP_MAKEFILES)/library.make
 include $(GNUSTEP_MAKEFILES)/tool.make

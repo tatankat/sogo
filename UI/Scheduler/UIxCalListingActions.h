@@ -40,8 +40,10 @@
   NSMutableDictionary *componentsData;
   NSCalendarDate *startDate;
   NSCalendarDate *endDate;
-  NSString *title;
+  NSString *value;
+  NSString *criteria;
   NSString *userLogin;
+  NSString *currentView;
   BOOL dayBasedView;
   WORequest *request;
   SOGoDateFormatter *dateFormatter;

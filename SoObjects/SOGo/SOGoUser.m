@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2006-2013 Inverse inc.
+  Copyright (C) 2006-2015 Inverse inc.
   Copyright (C) 2005 SKYRIX Software AG
 
   This file is part of SOGo.
@@ -37,6 +37,7 @@
 #import <NGExtensions/NSObject+Logs.h>
 
 #import <Appointments/SOGoAppointmentFolders.h>
+#import <Contacts/SOGoContactFolders.h>
 
 #import "NSArray+Utilities.h"
 #import "SOGoCache.h"
@@ -841,12 +842,24 @@
                                                  acquire: NO];
 }
 
-- (SOGoAppointmentFolder *)
- personalCalendarFolderInContext: (WOContext *) context
+- (SOGoAppointmentFolder *) personalCalendarFolderInContext: (WOContext *) context
 {
   return [[self calendarsFolderInContext: context] lookupPersonalFolder: @"personal"
                                                          ignoringRights: YES];
 }
+
+- (SOGoContactFolder *) personalContactsFolderInContext: (WOContext *) context
+{
+  SOGoContactFolders *folders;
+  
+  folders = [[self homeFolderInContext: context] lookupName: @"Contacts"
+                                                  inContext: context
+                                                    acquire: NO];
+  
+  return [folders lookupPersonalFolder: @"personal"
+                        ignoringRights: YES];
+}
+
 
 - (NSArray *) rolesForObject: (NSObject *) object
                    inContext: (WOContext *) context

@@ -13,6 +13,7 @@
 "Print"       = "Tisk";
 "Stop"        = "Zastavit";
 "Write"       = "Napsat";
+"Search"      = "Hledat";
 
 "Send" = "Odeslat";
 "Contacts" = "Kontakty";
@@ -41,6 +42,7 @@
 "Attachment" = "Příloha";
 "Unread" = "Nepřečtené";
 "Flagged" = "Oštítkované";
+"Search multiple mailboxes" = "Hledat ve zprávách";
 
 /* Main Frame  */
 
@@ -79,7 +81,7 @@
 "Remove this folder" = "Odebrat tuto složku";
 "Erase mails from this folder" = "Vymazat maily v této složce";
 "Expunge this folder" = "Vyškrtnout tuto složku";
-"Archive This Folder" = "Archivovat složku";
+"Export This Folder" = "Exportovat složku";
 "Modify the acl of this folder" = "Upravit acl této složky";
 
 "Saved Messages.zip" = "zpravy.zip";
@@ -94,14 +96,16 @@
 "To"            = "Komu";
 "Cc"            = "Kopie";
 "Bcc"           = "Skrytá Kopie";
-"Reply-To"	= "Odpovědět komu";
+"Reply-To"	    = "Odpovědět komu";
 "Add address"   = "Přidat adresu";
+"Body"          = "Tělo";
 
-"Attachments:" = "Přílohy:";
 "Open" = "Otevřít";
 "Select All" = "Vybrat vše";
 "Attach Web Page..." = "Připojit WWW stránku...";
-"Attach File(s)..." = "Připojit soubor(y)...";
+"file" = "soubor";
+"files" = "soubory";
+"Save all" = "Uložit všechno";
 
 "to"            = "Komu";
 "cc"            = "Kopie";
@@ -168,8 +172,6 @@
 "InboxFolderName"  = "Doručená pošta";
 "DraftsFolderName" = "Koncepty";
 "SieveFolderName"  = "Filtry";
-"OtherUsersFolderName"   = "Ostatní uživatelé";
-"SharedFoldersName" = "Sdílené složky";
 "Folders"          = "Složky"; /* title line */
 
 /* MailMoveToPopUp */
@@ -227,11 +229,6 @@
 
 /* Label popup menu */
 "None" = "Žádný";
-"Important" = "Důležitý";
-"Work" = "Pracovní";
-"Personal" = "Osobní";
-"To Do" = "Třeba udělat";
-"Later" = "Později";
 
 /* Mark popup menu */
 "As Read" = "Jako přečtené";
@@ -242,6 +239,18 @@
 "As Junk" = "Jako nevyžádané";
 "As Not Junk" = "Jako vyžádané";
 "Run Junk Mail Controls" = "Spustit kontrolu nevyžádaných";
+
+"Search messages in:" = "Hledat zprávy v:";
+"Search" = "Hledat";
+"Search subfolders" = "Hledat v podsložkách";
+"Match any of the following" = "Odpovídající některému pravidlu";
+"Match all of the following" = "Odpovídající všem pravidlům";
+"contains" = "obsahuje";
+"does not contain" = "neobsahuje";
+"No matches found" = "Nebylo nalezeno nic";
+"results found" = "výskytů nalezeno";
+"result found" = "výskyt nalezen";
+"Please specify at least one filter" = "Zadejte alespoň jedno pravidlo";
 
 /* Folder operations */
 "Name :" = "Jméno :";
@@ -283,8 +292,11 @@
 
 /* Message editing */
 "error_missingsubject" = "Chybí předmět";
-"error_missingrecipients" = "Příjemci nebyli specifikováni";
+"error_missingrecipients" = "Zadejte alespoň jednoho příjemce.";
 "Send Anyway" = "Odeslat";
+"Error while saving the draft:" = "Při uložení konceptu došlo k chybě:";
+"Error while uploading the file \"%{0}\":" = "Při přenosu souboru \"%{0}\" došlo k chybě:";
+"There is an active file upload. Closing the window will interrupt it." = "Přenáší se soubor. Zavření okna způsobí přerušení přenosu.";
 
 /* Message sending */
 "cannot send message: (smtp) all recipients discarded" = "Zprávu nelze odeslat: adresy všech příjemců jsou neplatné.";

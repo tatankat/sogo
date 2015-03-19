@@ -1,8 +1,6 @@
 /* UIxMailActions.m - this file is part of SOGo
  *
- * Copyright (C) 2007 Inverse inc.
- *
- * Author: Wolfgang Sourdeau <wsourdeau@inverse.ca>
+ * Copyright (C) 2007-2013 Inverse inc.
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +19,11 @@
  */
 
 #import <Foundation/NSArray.h>
+#import <Foundation/NSDictionary.h>
 #import <Foundation/NSString.h>
 
 #import <NGObjWeb/WOContext.h>
+#import <NGObjWeb/WOContext+SoObjects.h>
 #import <NGObjWeb/WORequest.h>
 #import <NGObjWeb/WOResponse.h>
 #import <NGObjWeb/NSException+HTTP.h>
@@ -32,6 +32,10 @@
 #import <SoObjects/Mailer/SOGoDraftsFolder.h>
 #import <SoObjects/Mailer/SOGoMailAccount.h>
 #import <SoObjects/Mailer/SOGoMailObject.h>
+#import <SoObjects/SOGo/NSString+Utilities.h>
+#import <SoObjects/SOGo/SOGoUser.h>
+#import <SoObjects/SOGo/SOGoUserSettings.h>
+#import <SoObjects/SOGo/SOGoUserDefaults.h>
 
 #import "../Common/WODirectAction+SOGo.h"
 
@@ -75,12 +79,18 @@
   SOGoMailObject *co;
   SOGoDraftsFolder *folder;
   SOGoDraftObject *newMail;
+  SOGoUserDefaults *ud;
   NSString *newLocation;
+  BOOL htmlComposition;
 
   co = [self clientObject];
   account = [co mailAccountFolder];
   folder = [account draftsFolderInContext: context];
   newMail = [folder newDraft];
+  ud = [[context activeUser] userDefaults];
+  htmlComposition = [[ud mailComposeMessageType] isEqualToString: @"html"];
+
+  [newMail setIsHTML: htmlComposition];
   [newMail fetchMailForForwarding: co];
 
   newLocation = [NSString stringWithFormat: @"%@/edit",
@@ -134,6 +144,82 @@
     response = [self responseWith204];
   
   return response;
+}
+
+- (void) collapseAction: (BOOL) isCollapsing
+{
+  SOGoMailObject *co;
+  WORequest *request;
+  NSMutableDictionary *moduleSettings, *threadsCollapsed, *content;
+  NSMutableArray *mailboxThreadsCollapsed;
+  NSString *msguid, *keyForMsgUIDs;
+  SOGoUserSettings *us;
+
+  request = [context request];
+  content = [[request contentAsString] objectFromJSONString];
+  keyForMsgUIDs = [content objectForKey:@"currentMailbox"];
+  msguid = [content objectForKey:@"msguid"];
+
+  co = [self clientObject];
+  us = [[context activeUser] userSettings];
+  if (!(moduleSettings = [us objectForKey: @"Mail"]))
+    [us setObject:[NSMutableDictionary dictionnary] forKey: @"Mail"];
+
+  if (isCollapsing)
+    {
+      // Check if the module threadsCollapsed is created in the userSettings
+      if ((threadsCollapsed = [moduleSettings objectForKey:@"threadsCollapsed"]))
+        {
+          // Check if the currentMailbox already have other threads saved and add the new collapsed thread
+          if ((mailboxThreadsCollapsed = [threadsCollapsed objectForKey:keyForMsgUIDs]))
+            {
+              if (![mailboxThreadsCollapsed containsObject:msguid])
+                [mailboxThreadsCollapsed addObject:msguid];
+            }
+          else
+            {
+              mailboxThreadsCollapsed = [NSMutableArray arrayWithObject:msguid];
+              [threadsCollapsed setObject:mailboxThreadsCollapsed forKey:keyForMsgUIDs];
+            }
+        }
+      else
+        {
+          // Created the module threadsCollapsed and add the new collapsed thread
+          mailboxThreadsCollapsed = [NSMutableArray arrayWithObject:msguid];
+          threadsCollapsed = [NSMutableDictionary dictionaryWithObject:mailboxThreadsCollapsed forKey:keyForMsgUIDs];
+          [moduleSettings setObject:threadsCollapsed forKey: @"threadsCollapsed"];
+        }
+    }
+  else
+    {
+      // Check if the module threadsCollapsed is created in the userSettings
+      if ((threadsCollapsed = [moduleSettings objectForKey:@"threadsCollapsed"]))
+        {
+          // Check if the currentMailbox already have other threads saved and remove the uncollapsed thread
+          if ((mailboxThreadsCollapsed = [threadsCollapsed objectForKey:keyForMsgUIDs]))
+            {
+              [mailboxThreadsCollapsed removeObject:msguid];
+              if ([mailboxThreadsCollapsed count] == 0)
+                [threadsCollapsed removeObjectForKey:keyForMsgUIDs];
+            }
+        }
+    // TODO : Manage errors
+    }
+  [us synchronize];
+}
+
+- (id) markMessageCollapseAction
+{
+  [self collapseAction: YES];
+  
+  return [self responseWith204];
+}
+
+- (id) markMessageUncollapseAction
+{
+  [self collapseAction: NO];
+  
+  return [self responseWith204];
 }
 
 /* SOGoDraftObject */
@@ -190,113 +276,6 @@
       response = [self responseWithStatus: 500];
       [response appendContentString: @"How did you end up here?"];
     }
-
-  return response;
-}
-
-- (WOResponse *) _addLabel: (unsigned int) number
-{
-  WOResponse *response;
-  SOGoMailObject *co;
-  NSException *error;
-  NSArray *flags;
-
-  co = [self clientObject];
-  flags = [NSArray arrayWithObject:
-		     [NSString stringWithFormat: @"$Label%u", number]];
-  error = [co addFlags: flags];
-  if (error)
-    response = (WOResponse *) error;
-  else
-    response = [self responseWith204];
-
-  return response;
-}
-
-- (WOResponse *) _removeLabel: (unsigned int) number
-{
-  WOResponse *response;
-  SOGoMailObject *co;
-  NSException *error;
-  NSArray *flags;
-
-  co = [self clientObject];
-  flags = [NSArray arrayWithObject:
-		     [NSString stringWithFormat: @"$Label%u", number]];
-  error = [co removeFlags: flags];
-  if (error)
-    response = (WOResponse *) error;
-  else
-    response = [self responseWith204];
-
-  return response;
-}
-
-- (WOResponse *) addLabel1Action
-{
-  return [self _addLabel: 1];
-}
-
-- (WOResponse *) addLabel2Action
-{
-  return [self _addLabel: 2];
-}
-
-- (WOResponse *) addLabel3Action
-{
-  return [self _addLabel: 3];
-}
-
-- (WOResponse *) addLabel4Action
-{
-  return [self _addLabel: 4];
-}
-
-- (WOResponse *) addLabel5Action
-{
-  return [self _addLabel: 5];
-}
-
-- (WOResponse *) removeLabel1Action
-{
-  return [self _removeLabel: 1];
-}
-
-- (WOResponse *) removeLabel2Action
-{
-  return [self _removeLabel: 2];
-}
-
-- (WOResponse *) removeLabel3Action
-{
-  return [self _removeLabel: 3];
-}
-
-- (WOResponse *) removeLabel4Action
-{
-  return [self _removeLabel: 4];
-}
-
-- (WOResponse *) removeLabel5Action
-{
-  return [self _removeLabel: 5];
-}
-
-- (WOResponse *) removeAllLabelsAction
-{
-  WOResponse *response;
-  SOGoMailObject *co;
-  NSException *error;
-  NSArray *flags;
-
-  co = [self clientObject];
-  flags = [NSArray arrayWithObjects: @"$Label1", @"$Label2", @"$Label3",
-		   @"$Label4", @"$Label5", nil];
-  error = [co removeFlags: flags];
-  if (error)
-    response = (WOResponse *) error;
-  else
-    response = [self responseWith204];
 
   return response;
 }

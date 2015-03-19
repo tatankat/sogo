@@ -5,6 +5,7 @@
 "Create a new event" = "Új esemény hozzáadása";
 "Create a new task" = "Új feladat hozzáadása";
 "Edit this event or task" = "Esemény vagy feladat szerkesztése";
+"Print the current calendar view" = "Aktuális naptár nézet nyomtatása";
 "Delete this event or task" = "Esemény vagy feladat törlése";
 "Go to today" = "Ugrás a mai napra";
 "Switch to day view" = "Napi nézetre váltás";
@@ -117,7 +118,7 @@
 "Name of the Calendar" = "A naptár neve:";
 
 "new" = "Új";
-"printview" = "Nyomtatási nézet";
+"Print view" = "Nyomtatási nézet";
 "edit" = "Szerkesztés";
 "delete" = "Törlés";
 "proposal" = "Javaslat";
@@ -145,6 +146,20 @@
 "Hide already accepted and rejected appointments" = "Már elfogadott, valamint visszautasított találkozók elrejtése.";
 "Show already accepted and rejected appointments" = "Már elfogadott, valamint visszautasított találkozók megmutatása";
 
+/* Print view */
+
+"LIST" = "Lista";
+"Print Settings" = "Nyomtatási beállítások";
+"Title:" = "Cím:";
+"Layout:" = "Elrendezés:";
+"What to Print" = "Mi kerüljön nyomtatásra";
+"Options" = "Beállítások";
+"Tasks with no due date" = "Befejező dátum nélküli feladatok";
+"Display working hours only" = "Csak a munkaidő órái jelenjen meg";
+"Completed tasks" = "Befejezett feladatok";
+"Display events and tasks colors" = "Események és feladatok színes megjelenítése";
+"Borders" = "Keretek";
+"Backgrounds" = "Hátterek";
 
 /* Appointments */
 
@@ -179,6 +194,8 @@
 "Reminder:" = "Emlékeztető:";
 "General:" = "Általános:";
 "Reply:" = "Válasz:";
+"Created by:" = "Létrehozta:";
+
 
 "Target:" = "Cél:";
 
@@ -223,8 +240,13 @@
 "view_future" = "Összes jövőbeni esemény";
 "view_selectedday" = "Kijelölt nap";
 
+"view_not_started" = "Nem megkezdett feladatok";
+"view_overdue" = "Lejárt feladatok";
+"view_incomplete" = "Befejezetlen feladat";
+
 "View:" = "Nézet:";
-"Title or Description" = "Cím vagy leírás";
+"Title, category or location" = "Cím, kategória vagy helyszin";
+"Entire content" = "Teljes tartalom";
 
 "Search" = "Keresés";
 "Search attendees" = "Résztvevők keresése";
@@ -373,6 +395,9 @@
 
 "Show Time as Free" = "Ne jelezzen foglaltságot";
 
+/* email notifications */
+"Send Appointment Notifications" = "Találkozó értesítések küldése";
+
 /* validation errors */
 
 validate_notitle           = "A cím nincs megadva, folytatja?";
@@ -411,8 +436,9 @@ validate_endbeforestart    = "A megadott befejező dátum korábbi, mint a kezd�
 "Workweek days only" = "Csak hétköznapok";
 "Tasks in View" = "Feladatok megjelenítése";
 
-"eventDeleteConfirmation" = "Az alábbi esemény(eke)t törli: \n%{0}\nFolytatja?";
-"taskDeleteConfirmation" = "A feladat törlése végleges.\nFolytatja?";
+"eventDeleteConfirmation" = "Az alábbi esemény(eke)t törli:";
+"taskDeleteConfirmation" = "A feladat törlése végleges.";
+"Would you like to continue?" = "Folytatja?";
 
 "You cannot remove nor unsubscribe from your personal calendar."
 = "Nem törölhet, valamint nem iratkozhat le egy személyes naptárról.";
@@ -500,7 +526,7 @@ vtodo_class2 = "(Bizalmas feladat)";
 
 "Links to this Calendar" = "Hivatkozások ehhez a naptárhoz";
 "Authenticated User Access" = "Belépett felhasználók";
-"CalDAV URL" = "CalDAV url";
+"CalDAV URL" = "CalDAV URL:";
 "WebDAV ICS URL" = "WebDAV ICS URL";
 "WebDAV XML URL" = "WebDAV XML URL";
 
@@ -520,6 +546,8 @@ vtodo_class2 = "(Bizalmas feladat)";
 "tagWasRemoved" = "Amennyiben nem szinkronizálja a továbbiakban a naptárat, frissíteni kell az adatokat a mobil készülékén.";
 "DestinationCalendarError" = "A forrás- és cél naptár ugyanaz. Kérem válasszon egy másik naptárat.";
 "EventCopyError" = "Hiba történt a másoláskor. Kérem válasszon egy másik naptárat.";
+"Please select at least one calendar" = "Kérem válasszon legalább egy naptárat";
+
 
 "Open Task..." = "Feladat megnyitása...";
 "Mark Completed" = "A jelölés befejeződött.";

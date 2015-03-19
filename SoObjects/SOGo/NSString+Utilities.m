@@ -1,6 +1,6 @@
 /* NSString+Utilities.m - this file is part of SOGo
  *
- * Copyright (C) 2006-2013 Inverse inc.
+ * Copyright (C) 2006-2014 Inverse inc.
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,7 +112,6 @@ static int cssEscapingCount;
 
 //       [urlNonEndingChars addCharactersInString: @">&=,.:;\t \r\n"];
 //       [urlAfterEndingChars addCharactersInString: @"()[]{}&;<\t \r\n"];
-
   if (!urlNonEndingChars)
     {
       urlNonEndingChars = [NSMutableCharacterSet new];
@@ -274,37 +273,57 @@ static int cssEscapingCount;
   return [NSString stringWithFormat: @"\"%@\"", representation];
 }
 
-- (NSString *) jsonRepresentation
+//
+// See http://www.hackcraft.net/xmlUnicode/
+//
+// XML1.0 and XML1.1 allow different characters in different contexts, but for the most part I will only describe the XML1.0 usage, XML1.1 usage is analogous.
+// The first definition that is relevant here is that of a Char:
+// [2]	Char	::=	#x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]	/* any Unicode character, excluding the surrogate blocks, FFFE, and FFFF. */
+//
+// This defines which characters can be used in an XML1.0 document. It is clearly very liberal, banning only some of the control characters and the noncharacters U+FFFE and U+FFFF.
+// Indeed it is somewhat too liberal in my view since it allows other noncharacters (the code points from U+FDD0 to U+FDEF inclusive and the last 2 code points in each plane,
+// from U+1FFFE & U+1FFFF through to U+10FFFE & U+10FFFF, are noncharacters) but the production quoted above allows them.
+//
+- (NSString *) safeString
 {
-  static unichar thisCharCode[29];
-  static NSString *controlCharString = nil;
-  static NSCharacterSet *controlCharSet = nil;
-  NSString *cleanedString;
-  int i, j;
+  NSString *s;
 
-  if (!controlCharSet)
+  unichar *buf, *start, c;
+  int len, i, j;
+
+  len = [self length];
+  start = buf = (unichar *)malloc(len*sizeof(unichar));
+  [self getCharacters: buf range: NSMakeRange(0, len)];
+
+  for (i = 0, j = 0; i < len; i++)
     {
-      // Create an array of chars for all control characters between 0x00 and 0x1F,
-      // apart from \t, \n, \f and \r (0x08, 0x09, 0x0A, 0x0C and 0x0D)
-      for (i = 0, j = 0x00; j < 0x08; i++, j++) {
-        thisCharCode[i] = j;
-      }
-      thisCharCode[i++] = 0x0B;
-      for (j = 0x0E; j <= 0x1F; i++, j++) {
-        thisCharCode[i] = j;
-      }
+      c = *buf;
 
-      // Also add some unicode separators
-      thisCharCode[i++] = 0x2028; // line separator
-      thisCharCode[i++] = 0x2029; // paragraph separator
-      controlCharString = [NSString stringWithCharacters:thisCharCode length:i];
-      controlCharSet = [NSCharacterSet characterSetWithCharactersInString: controlCharString];
-      [controlCharSet retain];
+      if (c == 0x9 ||
+          c == 0xA ||
+          c == 0xD ||
+          (c >= 0x20 && c <= 0xD7FF) ||
+          (c >= 0xE000 && c <= 0xFFFD) ||
+          (c >= 0x10000 && c <= 0x10FFFF))
+        {
+          *(start+j) = c;
+          j++;
+        }
+
+      buf++;
     }
 
+  s = [[NSString alloc] initWithCharactersNoCopy: start  length: j  freeWhenDone: YES];
+
+  return AUTORELEASE(s);
+}
+
+- (NSString *) jsonRepresentation
+{
+  NSString *cleanedString;
+
   // Escape double quotes and remove control characters
-  cleanedString = [[[self doubleQuotedString] componentsSeparatedByCharactersInSet: controlCharSet]
-                              componentsJoinedByString: @""];
+  cleanedString = [[self doubleQuotedString] safeString];
   return cleanedString;
 }
 
@@ -314,19 +333,18 @@ static int cssEscapingCount;
   int count;
 
   strings = [NSArray arrayWithObjects: @"_U_", @"_D_", @"_H_", @"_A_", @"_S_",
-                     @"_C_", @"_CO_", @"_SP_", @"_SQ_", @"_AM_", @"_P_", nil];
+                     @"_C_", @"_CO_", @"_SP_", @"_SQ_", @"_AM_", @"_P_", @"_DS_", nil];
   [strings retain];
   cssEscapingStrings = [strings asPointersOfObjects];
 
   characters = [NSArray arrayWithObjects: @"_", @".", @"#", @"@", @"*", @":",
-                        @",", @" ", @"'", @"&", @"+", nil];
+                        @",", @" ", @"'", @"&", @"+", @"$", nil];
   cssEscapingCount = [strings count];
   cssEscapingCharacters = NSZoneMalloc (NULL,
                                         (cssEscapingCount + 1)
                                         * sizeof (unichar));
   for (count = 0; count < cssEscapingCount; count++)
-    *(cssEscapingCharacters + count)
-      = [[characters objectAtIndex: count] characterAtIndex: 0];
+    *(cssEscapingCharacters + count) = [[characters objectAtIndex: count] characterAtIndex: 0];
   *(cssEscapingCharacters + cssEscapingCount) = 0;
 }
 
@@ -353,14 +371,20 @@ static int cssEscapingCount;
 
   cssIdentifier = [NSMutableString string];
   max = [self length];
-  for (count = 0; count < max; count++)
+  if (max > 0)
     {
-      currentChar = [self characterAtIndex: count];
-      idx = [self _cssCharacterIndex: currentChar];
-      if (idx > -1)
-        [cssIdentifier appendString: cssEscapingStrings[idx]];
-      else
-        [cssIdentifier appendFormat: @"%C", currentChar];
+      if (isdigit([self characterAtIndex: 0]))
+        // A CSS identifier can't start with a digit; we add an underscore
+        [cssIdentifier appendString: @"_"];
+      for (count = 0; count < max; count++)
+        {
+          currentChar = [self characterAtIndex: count];
+          idx = [self _cssCharacterIndex: currentChar];
+          if (idx > -1)
+            [cssIdentifier appendString: cssEscapingStrings[idx]];
+          else
+            [cssIdentifier appendFormat: @"%C", currentChar];
+        }
     }
 
   return cssIdentifier;
@@ -390,7 +414,17 @@ static int cssEscapingCount;
 
   newString = [NSMutableString string];
   max = [self length];
-  for (count = 0; count < max - 2; count++)
+  count = 0;
+  if (max > 0
+      && [self characterAtIndex: 0] == '_'
+      && isdigit([self characterAtIndex: 1]))
+    {
+      /* If the identifier starts with an underscore followed by a digit,
+         we remove the underscore */
+      count = 1;
+    }
+
+  for (; count < max - 2; count++)
     {
       currentChar = [self characterAtIndex: count];
       if (currentChar == '_')

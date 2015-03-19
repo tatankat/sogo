@@ -12,6 +12,7 @@
 "Forward" = "Переслать";
 "Password" = "Пароль";
 "Categories" = "Категории";
+"Appointments invitations" = "Цель приглашения";
 "Name" = "Имя";
 "Color" = "Цвет";
 "Add" = "Добавить";
@@ -75,9 +76,9 @@
 "longDateFmt_1" = "%e %b. %Y";
 "longDateFmt_2" = "%e %B %Y";
 "longDateFmt_3" = "%A, %B %d, %Y";
-"longDateFmt_4" = "%B %d, %Y";
-"longDateFmt_5" = "%A, %d %B, %Y";
-"longDateFmt_6" = "%d %B, %Y";
+"longDateFmt_4" = "";
+"longDateFmt_5" = "";
+"longDateFmt_6" = "";
 "longDateFmt_7" = "";
 "longDateFmt_8" = "";
 "longDateFmt_9" = "";
@@ -85,25 +86,28 @@
 
 "timeFmt_0" = "%H:%M";
 "timeFmt_1" = "%H.%M";
-"timeFmt_2" = "%H h. %M";
-"timeFmt_3" = "%I:%M %p";
+"timeFmt_2" = "";
+"timeFmt_3" = "";
 "timeFmt_4" = "";
 
 /* calendar */
-"Week begins on :" = "Неделя начинается с :";
-"Day start time :" = "Рабочий день начинается в :";
+"Week begins on :" = "Неделя начинается с:";
+"Day start time :" = "Рабочий день начинается в:";
 "Day end time :" = "Рабочий день заканчивается в :";
-"Day start time must be prior to day end time." = "Day start time must be prior to day end time.";
+"Day start time must be prior to day end time." = "Время начала дня должно быть перед временем его окончания.";
 "Show time as busy outside working hours" = "Показывать время, как занятое, если оно за границами рабочего времени.";
 "First week of year :" = "Первая неделя года :";
 "Enable reminders for Calendar items" = "Включить напоминания для событий календаря";
-"Play a sound when a reminder comes due"
-= "Проигрывать звук когда срабатывает оповещение";
+"Play a sound when a reminder comes due" = "Проигрывать звук когда срабатывает оповещение";
 "Default reminder :" = "Обычное оповещение :";
 
 "firstWeekOfYear_January1" = "Начинается 1 января";
 "firstWeekOfYear_First4DayWeek" = "Первая 4-х дневная неделя";
 "firstWeekOfYear_FirstFullWeek" = "Первая полная неделя";
+
+"Prevent from being invited to appointments" = "Не допускать приглашения на встречи";
+"White list for appointment invitations:" = "Белый список для приглашений на встречи:";
+"Contacts Names" = "Имена контактов";
 
 /* Default Calendar */
 "Default calendar :" = "Календарь по-умолчанию";
@@ -111,31 +115,26 @@
 "personalCalendar" = "Персональный календарь";
 "firstCalendar" = "Первый разрешенный календарь";
 
-"reminderTime_0000" = "0 минут";
-"reminderTime_0005" = "5 минут";
-"reminderTime_0010" = "10 минут";
-"reminderTime_0015" = "15 минут";
-"reminderTime_0030" = "30 минут";
-"reminderTime_0100" = "1 час";
-"reminderTime_0200" = "2 часа";
-"reminderTime_0400" = "4 часа";
-"reminderTime_0800" = "8 часов";
-"reminderTime_1200" = "1/2дня";
-"reminderTime_2400" = "1 день";
-"reminderTime_4800" = "2 дня";
+"reminder_NONE" = "Нет напоминания";
+"reminder_5_MINUTES_BEFORE" = "5 минут";
+"reminder_10_MINUTES_BEFORE" = "10 минут";
+"reminder_15_MINUTES_BEFORE" = "15 минут";
+"reminder_30_MINUTES_BEFORE" = "30 минут";
+"reminder_45_MINUTES_BEFORE" = "За 45 минут";
+"reminder_1_HOUR_BEFORE" = "1 час";
+"reminder_2_HOURS_BEFORE" = "2 часа";
+"reminder_5_HOURS_BEFORE" = "5 часа";
+"reminder_15_HOURS_BEFORE" = "15 часов";
+"reminder_1_DAY_BEFORE" = "1 день назад";
+"reminder_2_DAYS_BEFORE" = "2 дня назад";
+"reminder_1_WEEK_BEFORE" = "За 1 неделю";
 
 /* Mailer */
+"Labels" = "Метки";
+"Label" = "Метка";
 "Show subscribed mailboxes only" = "Показывать только почтовые ящики, на которые подписан";
 "Sort messages by threads" = "Сортировать сообщения по нитям";
-"Check for new mail:" = "Проверять новую почту:";
-"messagecheck_manually" = "Вручную";
-"messagecheck_every_minute" = "Каждую минуту";
-"messagecheck_every_2_minutes" = "Каждые 2 минуты";
-"messagecheck_every_5_minutes" = "Каждые 5 минут";
-"messagecheck_every_10_minutes" = "Каждые 10 минут";
-"messagecheck_every_20_minutes" = "Каждые 20 минут";
-"messagecheck_every_30_minutes" = "Каждые 30 минут";
-"messagecheck_once_per_hour" = "Раз в час";
+"When sending mail, add unknown recipients to my" = "При отправке писем добавлять неизвестных получателей в мою";
 
 "Forward messages:" = "Пересылать сообщения:";
 "messageforward_inline" = "В теле письма";
@@ -147,21 +146,25 @@
 "And place my signature" = "И поместить мою подпись";
 "signatureplacement_above" = "под ответом";
 "signatureplacement_below" = "под цитируемым текстом письма";
-"Compose messages in" = "Compose messages in";
+"Compose messages in" = "Составлять сообщения в";
 "composemessagestype_html" = "HTML";
 "composemessagestype_text" = "Plain text";
 "Display remote inline images" = "Показать встроенные изображения из сети";
 "displayremoteinlineimages_never" = "Никогда";
 "displayremoteinlineimages_always" = "Всегда";
 
+/* Contact */
+"Personal Address Book" = "Личная адресная книга";
+"Collected Address Book" = "Собранные адреса";
+
 /* IMAP Accounts */
 "New Mail Account" = "New Mail Account";
 
-"Server Name:" = "Server Name:";
-"Port:" = "Port:";
+"Server Name:" = "Имя сервера:";
+"Port:" = "Порт:";
 "Encryption:" = "Шифрование:";
 "None" = "Нет";
-"User Name:" = "User Name:";
+"User Name:" = "Имя пользователя:";
 "Password:" = "Пароль:";
 
 "Full Name:" = "Full Name:";
@@ -171,7 +174,7 @@
 "(Click to create)" = "(Click to create)";
 
 "Signature" = "Подпись";
-"Please enter your signature below:" = "Please enter your signature below:";
+"Please enter your signature below:" = "Введите вашу подпись ниже:";
 
 "Please specify a valid sender address." = "Пожалуйста укажите правильный адрес отправителя.";
 "Please specify a valid reply-to address." = "Пожалуйста укажите правильный адрес для ответа.";
@@ -192,7 +195,7 @@
 "PRIVATE_item" = "Private";
 
 /* Event+task categories */
-"category_none" = "None";
+"category_none" = "Нет";
 "calendar_category_labels" = "Годовщина,День рождения,Деловые,Звонки,Клиенты,Конкуренты,Потребители,Избранное,Вслед за,Подарки,Праздники,Идеи,Встречи,Проблемы,Разное,Персональное,Проекты,Государственный праздник,Статус,Поставщики,Путешествия,Отпуск";
 
 /* Default module */
@@ -200,9 +203,10 @@
 "Contacts" = "Адресная книга";
 "Mail" = "Почта";
 "Last" = "Последнее использование";
-"Default module :" = "Модуль по умолчанию :";
+"Default Module :" = "Модуль по умолчанию:";
+"SOGo Version :" = "Версия SOGo:";
 
-"Language :" = "Язык :";
+"Language :" = "Язык:";
 "choose" = "Выбрать ...";
 "Arabic" = "العربية";
 "Catalan" = "Català";
@@ -228,6 +232,16 @@
 "Ukrainian" = "Українська";
 "Welsh" = "Cymraeg";
 
+"Refresh View :" = "Обновить вид:";
+"refreshview_manually" = "Вручную";
+"refreshview_every_minute" = "Каждую минуту";
+"refreshview_every_2_minutes" = "Каждые 2 минуты";
+"refreshview_every_5_minutes" = "Каждые 5 минут";
+"refreshview_every_10_minutes" = "Каждые 10 минут";
+"refreshview_every_20_minutes" = "Каждые 20 минут";
+"refreshview_every_30_minutes" = "Каждые 30 минут";
+"refreshview_once_per_hour" = "Раз в час";
+
 /* Return receipts */
 "When I receive a request for a return receipt:" = "Когда я получаю запрос об уведомлении о доставке:";
 "Never send a return receipt" = "Никогда не посылать уведомления о доставке";
@@ -245,6 +259,8 @@
 "Active" = "Активные";
 "Move Up" = "Передвинуть вверх";
 "Move Down" = "Передвинуть вниз";
+"Connection error" = "Ошибка соединения";
+"Service temporarily unavailable" = "Сервис временно недоступен";
 
 /* Filters - UIxFilterEditor */
 "Filter name:" = "Имя фильтра:";
@@ -256,12 +272,13 @@
 "Untitled Filter" = "Фильтр без названия";
 
 "Subject" = "Subject";
-"From" = "From";
+"From" = "От";
 "To" = "To";
 "Cc" = "Cc";
 "To or Cc" = "To or Cc";
-"Size (Kb)" = "Size (Kb)";
-"Header" = "Header";
+"Size (Kb)" = "Размер (кБ)";
+"Header" = "Заголовок";
+"Body" = "Тело письма";
 "Flag the message with:" = "Пометить сообщение с:";
 "Discard the message" = "Уничтожить сообщение";
 "File the message in:" = "Сохранить сообщение в:";
@@ -288,12 +305,8 @@
 "Flagged" = "Помечено флагом";
 "Junk" = "Спам";
 "Not Junk" = "Не спам";
-"Label 1" = "Label 1";
-"Label 2" = "Label 2";
-"Label 3" = "Label 3";
-"Label 4" = "Label 4";
-"Label 5" = "Label 5";
 
+/* Password policy */
 "The password was changed successfully." = "Пароль был успешно изменен.";
 "Password must not be empty." = "Пароль не должен быть пустым";
 "The passwords do not match. Please try again." = "Пароли не совпадают. Пожалуйста попробуйте заново.";

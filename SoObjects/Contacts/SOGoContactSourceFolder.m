@@ -1,8 +1,6 @@
 /* SOGoContactSourceFolder.m - this file is part of SOGo
  *
- * Copyright (C) 2006-2011 Inverse inc.
- *
- * Author: Wolfgang Sourdeau <wsourdeau@inverse.ca>
+ * Copyright (C) 2006-2013 Inverse inc.
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -270,6 +268,13 @@
     data = [oldRecord objectForKey: @"homephone"];
   if (![data length])
     data = @"";
+  else if ([data isKindOfClass: [NSArray class]])
+    {
+      if ([data count] > 0)
+        data = [data objectAtIndex: 0];
+      else
+        data = @"";
+    }
   [newRecord setObject: data forKey: @"c_telephonenumber"];
 
   // Custom attribute for group-lookups. See LDAPSource.m where
@@ -535,14 +540,12 @@
   [r appendString: [[object objectForKey: @"c_name"] stringByEscapingURL]];
   [r appendString: @"</D:href>"];
 
-//   NSLog (@"(appendPropstats...): %@", [NSDate date]);
   propstats = [self _propstats: properties count: propertiesCount
                       ofObject: object];
   max = [propstats count];
   for (count = 0; count < max; count++)
     [self _appendPropstat: [propstats objectAtIndex: count]
-	  toBuffer: r];
-//   NSLog (@"/(appendPropstats...): %@", [NSDate date]);
+                 toBuffer: r];
 
   [r appendString: @"</D:response>"];
 }
@@ -564,8 +567,10 @@
   NSDictionary *object;
   NSString **propertiesArray;
   NSMutableString *buffer;
-  unsigned int count, max, propertiesCount;
+  NSDictionary *object;
 
+  unsigned int count, max, propertiesCount;
+  
   baseURL = [self davURLAsString];
 #warning review this when fixing http://www.scalableogo.org/bugs/view.php?id=276
   if (![baseURL hasSuffix: @"/"])
@@ -583,7 +588,7 @@
       url = [[[element firstChild] nodeValue] stringByUnescapingURL];
       cname = [self _deduceObjectNameFromURL: url fromBaseURL: baseURL];
       object = [source lookupContactEntry: cname];
-      if (cname && object)
+      if (object)
         [self appendObject: object
                 properties: propertiesArray
                      count: propertiesCount

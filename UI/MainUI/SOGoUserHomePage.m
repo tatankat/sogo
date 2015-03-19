@@ -1,8 +1,6 @@
 /* SOGoUserHomePage.m - this file is part of SOGo
  *
- * Copyright (C) 2007-2010 Inverse inc.
- *
- * Author: Wolfgang Sourdeau <wsourdeau@inverse.ca>
+ * Copyright (C) 2007-2015 Inverse inc.
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +33,12 @@
 #import <NGExtensions/NSObject+Logs.h>
 
 #import <Appointments/SOGoFreeBusyObject.h>
+
+#import <SOGo/SOGoCache.h>
 #import <SOGo/SOGoCASSession.h>
+#if defined(SAML2_CONFIG)
+#import <SOGo/SOGoSAML2Session.h>
+#endif
 #import <SOGo/SOGoUserManager.h>
 #import <SOGo/SOGoWebAuthenticator.h>
 #import <SOGo/SOGoUser.h>
@@ -46,6 +49,8 @@
 #import <SOGo/NSCalendarDate+SOGo.h>
 #import <SOGo/NSDictionary+Utilities.h>
 #import <SOGoUI/UIxComponent.h>
+
+#import <SBJson/NSObject+SBJSON.h>
 
 #define intervalSeconds 900 /* 15 minutes */
 
@@ -91,94 +96,156 @@
   NSDictionary *record;
   SOGoUser *user;
 
-  int recordCount, recordMax, count, startInterval, endInterval, i, type;
+  int recordCount, recordMax, count, startInterval, endInterval, i, type, maxBookings, isResource, delta;
 
   recordMax = [records count];
-  user = [SOGoUser userWithLogin: [[self clientObject] ownerInContext: context]
-		     roles: nil];
+  user = [SOGoUser userWithLogin: [[self clientObject] ownerInContext: context] roles: nil];
+  maxBookings = [user numberOfSimultaneousBookings];
+  isResource = [user isResource];
 
-  for (recordCount = 0; recordCount < recordMax; recordCount++)
+  // Fetch freebusy information if the user is NOT a resource or if multiplebookings isn't unlimited
+  if (!isResource || maxBookings != 0)
     {
-      record = [records objectAtIndex: recordCount];
-      if ([[record objectForKey: @"c_isopaque"] boolValue])
-	{
-	type = 0;
+      for (recordCount = 0; recordCount < recordMax; recordCount++)
+        {
+          record = [records objectAtIndex: recordCount];
+          if ([[record objectForKey: @"c_isopaque"] boolValue])
+            {
+              type = 0;
 
-	// If the event has NO organizer (which means it's the user that has created it) OR
-	// If we are the organizer of the event THEN we are automatically busy
-	if ([[record objectForKey: @"c_orgmail"] length] == 0 ||
-	    [user hasEmail: [record objectForKey: @"c_orgmail"]])
-	  {
-	    type = 1;
-	  }
-	else
-	  {
-	    // We check if the user has accepted/declined or needs action
-	    // on the current event.
-	    emails = [[record objectForKey: @"c_partmails"] componentsSeparatedByString: @"\n"];
+              // If the event has NO organizer (which means it's the user that has created it) OR
+              // If we are the organizer of the event THEN we are automatically busy
+              if ([[record objectForKey: @"c_orgmail"] length] == 0 ||
+                  [user hasEmail: [record objectForKey: @"c_orgmail"]])
+                {
+                  type = 1;
+                }
+              else
+                {
+                  // We check if the user has accepted/declined or needs action
+                  // on the current event.
+                  emails = [[record objectForKey: @"c_partmails"] componentsSeparatedByString: @"\n"];
 
-	    for (i = 0; i < [emails count]; i++)
-	      {
-		if ([user hasEmail: [emails objectAtIndex: i]])
-		  {
-		    // We now fetch the c_partstates array and get the participation
-		    // status of the user for the event
-		    partstates = [[record objectForKey: @"c_partstates"] componentsSeparatedByString: @"\n"];
+                  for (i = 0; i < [emails count]; i++)
+                    {
+                      if ([user hasEmail: [emails objectAtIndex: i]])
+                        {
+                          // We now fetch the c_partstates array and get the participation
+                          // status of the user for the event
+                          partstates = [[record objectForKey: @"c_partstates"] componentsSeparatedByString: @"\n"];
 		    
-		    if (i < [partstates count])
-		      {
-			type = ([[partstates objectAtIndex: i] intValue] < 2 ? 1 : 0);
-		      }
-		    break;
-		  }
-	      }
-	  }
+                          if (i < [partstates count])
+                            {
+                              type = ([[partstates objectAtIndex: i] intValue] < 2 ? 1 : 0);
+                            }
+                          break;
+                        }
+                    }
+                }
 
-	  currentDate = [record objectForKey: @"startDate"];
-	  if ([currentDate earlierDate: startDate] == currentDate)
-	    startInterval = 0;
-	  else
-	    startInterval = ([currentDate timeIntervalSinceDate: startDate]
-			     / intervalSeconds);
+              if (type == 1)
+                {
+                  // User is busy for this event; update items bit string
+                  currentDate = [record objectForKey: @"startDate"];
+                  if ([currentDate earlierDate: startDate] == currentDate)
+                    startInterval = 0;
+                  else
+                    startInterval = ([currentDate timeIntervalSinceDate: startDate]
+                                     / intervalSeconds);
 
-	  currentDate = [record objectForKey: @"endDate"];
-	  if ([currentDate earlierDate: endDate] == endDate)
-	    endInterval = itemCount - 1;
-	  else
-	    endInterval = ([currentDate timeIntervalSinceDate: startDate]
-			   / intervalSeconds);
+                  delta = [[currentDate timeZoneDetail] timeZoneSecondsFromGMT] - [[startDate timeZoneDetail] timeZoneSecondsFromGMT];
+                  startInterval += (delta/60/15);
 
-	  if (type == 1)
-	    for (count = startInterval; count < endInterval; count++)
-	      *(items + count) = 1;
-	}
+                  currentDate = [record objectForKey: @"endDate"];
+                  if ([currentDate earlierDate: endDate] == endDate)
+                    endInterval = itemCount - 1;
+                  else
+                    endInterval = ([currentDate timeIntervalSinceDate: startDate]
+                                   / intervalSeconds);
+                  
+                  delta = [[currentDate timeZoneDetail] timeZoneSecondsFromGMT] - [[startDate timeZoneDetail] timeZoneSecondsFromGMT];
+                  endInterval += (delta/60/15);
+
+                  // Update bit string representation
+                  // If the user is a resource with restristed amount of bookings, keep the sum of overlapping events
+                  for (count = startInterval; count < endInterval; count++)
+                    {
+                      *(items + count) = (isResource && maxBookings > 0) ? *(items + count) + 1 : 1;
+                    }
+                }
+            }
+        }
+      if (maxBookings > 0)
+        {
+          // Reset the freebusy for the periods that are bellow the maximum number of bookings
+          for (count = 0; count < itemCount; count++)
+            {
+              if (*(items + count) < maxBookings)
+                *(items + count) = 0;
+              else
+                *(items + count) = 1;
+            }
+        }
     }
 }
 
+//
+//
+//
 - (NSString *) _freeBusyFromStartDate: (NSCalendarDate *) startDate
                             toEndDate: (NSCalendarDate *) endDate
                           forFreeBusy: (SOGoFreeBusyObject *) fb
                            andContact: (NSString *) uid
 {
+  NSCalendarDate *start, *end;
   NSMutableArray *freeBusy;
   unsigned int *freeBusyItems;
   NSTimeInterval interval;
   unsigned int count, intervals;
 
+  // We "copy" the start/end date because -fetchFreeBusyInfosFrom will mess
+  // with the timezone and we don't want that to properly calculate the delta
+  // DO NOT USE -copy HERE - it'll simply return [self retain].
+  start = [NSCalendarDate dateWithYear: [startDate yearOfCommonEra]
+                                 month: [startDate monthOfYear]
+                                   day: [startDate dayOfMonth]
+                                  hour: [startDate hourOfDay]
+                                minute: [startDate minuteOfHour]
+                                second: [startDate secondOfMinute]
+                              timeZone: [startDate timeZone]];
+  
+  end = [NSCalendarDate dateWithYear: [endDate yearOfCommonEra]
+                               month: [endDate monthOfYear]
+                                 day: [endDate dayOfMonth]
+                                hour: [endDate hourOfDay]
+                              minute: [endDate minuteOfHour]
+                              second: [endDate secondOfMinute]
+                            timeZone: [endDate timeZone]];
+
   interval = [endDate timeIntervalSinceDate: startDate] + 60;
-  intervals = interval / intervalSeconds; /* slices of 15 minutes */
 
+  // Slices of 15 minutes. The +8 is to take into account that we can
+  // have a timezone change during the freebusy lookup. We have +4 at the
+  // beginning and +4 at the end.
+  intervals = interval / intervalSeconds + 8;
+
+  // Build a bit string representation of the freebusy data for the period
   freeBusyItems = NSZoneCalloc (NULL, intervals, sizeof (int));
-  [self _fillFreeBusyItems: freeBusyItems count: intervals
-	       withRecords: [fb fetchFreeBusyInfosFrom: startDate to: endDate forContact: uid]
-        fromStartDate: startDate toEndDate: endDate];
+  [self _fillFreeBusyItems: (freeBusyItems+4)
+                     count: (intervals-4)
+	       withRecords: [fb fetchFreeBusyInfosFrom: start to: end forContact: uid]
+             fromStartDate: startDate
+                 toEndDate: endDate];
 
+  // Convert bit string to a NSArray. We also skip by the default the non-requested information.
   freeBusy = [NSMutableArray arrayWithCapacity: intervals];
-  for (count = 0; count < intervals; count++)
-    [freeBusy
-      addObject: [NSString stringWithFormat: @"%d", *(freeBusyItems + count)]];
+  for (count = 4; count < (intervals-4); count++)
+    {
+      [freeBusy addObject: [NSString stringWithFormat: @"%d", *(freeBusyItems + count)]];
+    }
   NSZoneFree (NULL, freeBusyItems);
 
+  // Return a NSString representation
   return [freeBusy componentsJoinedByString: @","];
 }
 
@@ -241,14 +308,57 @@
 
   sd = [SOGoSystemDefaults sharedSystemDefaults];
   if ([[sd authenticationType] isEqualToString: @"cas"])
-    redirectURL = [SOGoCASSession CASURLWithAction: @"logout"
-                                     andParameters: nil];
+    {
+      redirectURL = [SOGoCASSession CASURLWithAction: @"logout"
+                                       andParameters: nil];
+    }
+#if defined(SAML2_CONFIG)
+  else if ([[sd authenticationType] isEqualToString: @"saml2"])
+    {
+      NSString *username, *password, *domain, *value;
+      SOGoSAML2Session *saml2Session;
+      SOGoWebAuthenticator *auth;
+      LassoServer *server;
+      LassoLogout *logout;   
+      NSArray *creds;
+  
+      auth = [[self clientObject] authenticatorInContext: context];
+      value = [[context request] cookieValueForKey: [auth cookieNameInContext: context]];
+      creds = [auth parseCredentials: value];
+
+      value = [SOGoSession valueForSessionKey: [creds lastObject]];
+      
+      domain = nil;
+      
+      [SOGoSession decodeValue: value
+                      usingKey: [creds objectAtIndex: 0]
+                         login: &username
+                        domain: &domain
+                      password: &password];
+
+      saml2Session = [SOGoSAML2Session SAML2SessionWithIdentifier: password
+                                                        inContext: context];
+      
+      server = [SOGoSAML2Session lassoServerInContext: context];
+      
+      logout = lasso_logout_new(server);
+
+      lasso_profile_set_session_from_dump(LASSO_PROFILE(logout), [[saml2Session session] UTF8String]);
+      lasso_profile_set_identity_from_dump(LASSO_PROFILE(logout), [[saml2Session session] UTF8String]);
+      lasso_logout_init_request(logout, NULL, LASSO_HTTP_METHOD_REDIRECT);
+      lasso_logout_build_request_msg(logout);
+      redirectURL = [NSString stringWithFormat: @"%s", LASSO_PROFILE(logout)->msg_url];
+
+      // We destroy our cache entry, the session will be taken care by the caller
+      [[SOGoCache sharedCache] removeSAML2LoginDumpsForIdentifier: password];
+    }      
+#endif
   else
     {
       container = [[self clientObject] container];
       redirectURL = [container baseURLInContext: context];
     }
-
+  
   return redirectURL;
 }
 
@@ -335,8 +445,7 @@
 
   // We sort our array - this is pretty useful for the Web
   // interface of SOGo.
-  allUsers = [users
-	       sortedArrayUsingSelector: @selector (caseInsensitiveDisplayNameCompare:)];
+  allUsers = [users sortedArrayUsingSelector: @selector (caseInsensitiveDisplayNameCompare:)];
 
   max = [allUsers count];
   jsonResponse = [NSMutableArray arrayWithCapacity: max];
@@ -409,17 +518,13 @@
 - (WOResponse *) _foldersResponseForResults: (NSArray *) folders
 {
   WOResponse *response;
-  NSEnumerator *foldersEnum;
-  NSDictionary *currentFolder;
 
   response = [context response];
   [response setStatus: 200];
   [response setHeader: @"text/plain; charset=utf-8"
 	    forKey: @"Content-Type"];
-  foldersEnum = [folders objectEnumerator];
-  while ((currentFolder = [foldersEnum nextObject]))
-    [response appendContentString:
-		[currentFolder keysWithFormat: @";%{displayName}:%{name}:%{type}"]];
+
+  [response appendContentString: [folders JSONRepresentation]];
 
   return response;
 }
@@ -433,9 +538,8 @@
 
   folderType = [self queryParameterForKey: @"type"];
   userFolder = [self clientObject];
-  folders
-    = [userFolder foldersOfType: folderType
-			 forUID: [userFolder ownerInContext: context]];
+  folders = [userFolder foldersOfType: folderType
+                               forUID: [userFolder ownerInContext: context]];
   result = [self _foldersResponseForResults: folders];
   
   return result;

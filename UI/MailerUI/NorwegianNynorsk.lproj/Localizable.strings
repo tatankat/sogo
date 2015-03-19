@@ -76,7 +76,6 @@
 "Remove this folder" = "Ta bort mappen";
 "Erase mails from this folder" = "Slett meldinger fra mappen";
 "Expunge this folder" = "Fjern mappen";
-"Archive This Folder" = "Arkiver denne mappen";
 "Modify the acl of this folder" = "Endre adgangsrettigheter til mappen";
 
 "Saved Messages.zip" = "Lagrete Meldinger.zip";
@@ -165,8 +164,6 @@
 "InboxFolderName"  = "Innboks";
 "DraftsFolderName" = "Kladder";
 "SieveFolderName"  = "Filter";
-"OtherUsersFolderName"   = "Other Users";
-"SharedFoldersName" = "Shared Folders";
 "Folders"          = "Mapper"; /* title line */
 
 /* MailMoveToPopUp */
@@ -225,11 +222,6 @@
 
 /* Label popup menu */
 "None" = "Ingen";
-"Important" = "Viktig";
-"Work" = "Arbeid";
-"Personal" = "Personlig";
-"To Do" = "Gjøremål";
-"Later" = "Senere";
 
 /* Mark popup menu */
 "As Read" = "Som lest";

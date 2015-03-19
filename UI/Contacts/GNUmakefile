@@ -22,7 +22,8 @@ ContactsUI_OBJC_FILES =			\
 	UIxListEditor.m			\
 	UIxContactsListActions.m	\
 	UIxContactFoldersView.m		\
-	UIxContactFolderActions.m 
+	UIxContactFolderActions.m       \
+	UIxContactFolderProperties.m
 
 ContactsUI_RESOURCE_FILES +=		\
 	product.plist			\
@@ -37,6 +38,7 @@ ContactsUI_LOCALIZED_RESOURCE_FILES +=	\
 
 ADDITIONAL_INCLUDE_DIRS += -I../../SOPE/
 ADDITIONAL_LIB_DIRS += -L../../SOPE/GDLContentStore/obj/
+ADDITIONAL_LDFLAGS += -Wl,--rpath,$(SOGO_SYSLIBDIR)/sogo
 
 -include GNUmakefile.preamble
 include $(GNUSTEP_MAKEFILES)/bundle.make

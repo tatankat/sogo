@@ -1,7 +1,7 @@
 
 /* SOGoAppointmentFolders.m - this file is part of SOGo
  *
- * Copyright (C) 2007-2013 Inverse inc.
+ * Copyright (C) 2007-2015 Inverse inc.
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,8 @@
 
 #import <GDLAccess/EOAdaptorChannel.h>
 
+#import <DOM/DOMElement.h>
+#import <DOM/DOMNode.h>
 #import <DOM/DOMProtocols.h>
 #import <SaxObjC/XMLNamespaces.h>
 
@@ -56,14 +58,41 @@
 
 #import "SOGoAppointmentFolders.h"
 
-@interface SOGoParentFolder (Private)
+static SoSecurityManager *sm = nil;
 
-- (NSException *) _fetchPersonalFolders: (NSString *) sql
-                            withChannel: (EOAdaptorChannel *) fc;
+@interface NGDOMElement (SOGo)
+
+- (BOOL) isTextNode;
 
 @end
 
-static SoSecurityManager *sm = nil;
+@implementation NGDOMElement (SOGo)
+
+- (BOOL) isTextNode
+{
+  id <DOMNodeList> children;
+  id <DOMElement> element;
+  int i;
+
+  if ([self nodeType] == DOM_TEXT_NODE)
+    return YES;
+  
+  children = [self childNodes];
+
+  for (i = 0; i < [children length]; i++)
+    {
+      element = [children objectAtIndex: i];
+
+      if ([element nodeType] != DOM_TEXT_NODE)
+        return NO;
+    }
+  
+  return YES;
+}
+
+@end
+
+
 
 @implementation SOGoAppointmentFolders
 
@@ -314,10 +343,17 @@ static SoSecurityManager *sm = nil;
 			      [currentElement nodeName]];
       if ([currentName isEqualToString: propertyName])
 	{
-	  values = [currentElement childNodes];
-	  if ([values length])
-	    property = [[values objectAtIndex: 0] nodeValue];
-	}
+          if ([(id)currentElement isTextNode])
+            {
+              property = [(id)currentElement textValue];
+            }
+          else
+            {
+              values = [currentElement childNodes];
+              if ([values length])
+                property = [[values objectAtIndex: 0] nodeValue];
+            }
+        }
     }
 
   return property;
@@ -340,7 +376,11 @@ static SoSecurityManager *sm = nil;
       values = [currentProperty childNodes];
       if ([values length])
 	{
-	  value = [[values objectAtIndex: 0] nodeValue];
+          if ([(id)currentProperty isTextNode])
+            value = [(id)currentProperty textValue];
+          else
+            value = [[values objectAtIndex: 0] nodeValue];
+          
 	  currentName = [NSString stringWithFormat: @"{%@}%@",
 				  [currentProperty namespaceURI],
 				  [currentProperty nodeName]];
@@ -596,8 +636,9 @@ static SoSecurityManager *sm = nil;
     }
 }
 
-- (NSException *) _fetchPersonalFolders: (NSString *) sql
-                            withChannel: (EOAdaptorChannel *) fc
+- (NSException *) fetchSpecialFolders: (NSString *) sql
+                          withChannel: (EOAdaptorChannel *) fc
+                        andFolderType: (SOGoFolderType) folderType
 {
   BOOL isWebRequest;
   NSException *error;
@@ -607,7 +648,7 @@ static SoSecurityManager *sm = nil;
   SOGoWebAppointmentFolder *webFolder;
   NSString *name;
 
-  error = [super _fetchPersonalFolders: sql withChannel: fc];
+  error = [super fetchSpecialFolders: sql withChannel: fc  andFolderType: folderType];
   if (!error)
     {
       isWebRequest = [[context request] handledByDefaultHandler];
@@ -756,7 +797,8 @@ static SoSecurityManager *sm = nil;
           for (userCount = 0; userCount < userMax; userCount++)
             [currentFolder
               subscribeUserOrGroup: [proxySubscribers objectAtIndex: userCount]
-			  reallyDo: YES];
+			  reallyDo: YES
+                          response: nil];
         }
     }
 }
@@ -781,7 +823,8 @@ static SoSecurityManager *sm = nil;
           for (userCount = 0; userCount < userMax; userCount++)
             [currentFolder
               subscribeUserOrGroup: [proxySubscribers objectAtIndex: userCount]
-			  reallyDo: NO];
+			  reallyDo: NO
+                          response: nil];
         }
     }
 }

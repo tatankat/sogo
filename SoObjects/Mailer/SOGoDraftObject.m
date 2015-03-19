@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2007-2012 Inverse inc.
+  Copyright (C) 2007-2014 Inverse inc.
   Copyright (C) 2004-2005 SKYRIX Software AG
 
   This file is part of SOGo.
@@ -45,6 +45,8 @@
 #import <NGImap4/NGImap4Client.h>
 #import <NGImap4/NGImap4Envelope.h>
 #import <NGImap4/NGImap4EnvelopeAddress.h>
+#import <NGMail/NGMailAddress.h>
+#import <NGMail/NGMailAddressParser.h>
 #import <NGMail/NGMimeMessage.h>
 #import <NGMail/NGMimeMessageGenerator.h>
 #import <NGMime/NGMimeBodyPart.h>
@@ -62,6 +64,11 @@
 #import <SOGo/SOGoMailer.h>
 #import <SOGo/SOGoUser.h>
 #import <SOGo/SOGoUserDefaults.h>
+
+#import <NGCards/NGVCard.h>
+
+#import <Contacts/SOGoContactFolders.h>
+#import <Contacts/SOGoContactGCSEntry.h>
 
 #import "NSData+Mail.h"
 #import "NSString+Mail.h"
@@ -191,6 +198,7 @@ static NSString    *userAgent      = nil;
 {
   if ((self = [super init]))
     {
+      sourceIMAP4ID = -1;
       IMAP4ID = -1;
       headers = [NSMutableDictionary new];
       text = @"";
@@ -228,8 +236,7 @@ static NSString    *userAgent      = nil;
 {
   if (!path)
     {
-      path = [[self userSpoolFolderPath] stringByAppendingPathComponent:
-					   nameInContainer];
+      path = [[self userSpoolFolderPath] stringByAppendingPathComponent: nameInContainer];
       [path retain];
     }
 
@@ -256,24 +263,11 @@ static NSString    *userAgent      = nil;
 
 /* contents */
 
-- (NSString *) _generateMessageID
-{
-  NSMutableString *messageID;
-  NSString *pGUID;
-
-  messageID = [NSMutableString string];
-  [messageID appendFormat: @"<%@", [self globallyUniqueObjectId]];
-  pGUID = [[NSProcessInfo processInfo] globallyUniqueString];
-  [messageID appendFormat: @"@%u>", [pGUID hash]];
-
-  return [messageID lowercaseString];
-}
-
 - (void) setHeaders: (NSDictionary *) newHeaders
 {
   id headerValue;
   unsigned int count;
-  NSString *messageID, *priority, *pureSender, *replyTo;
+  NSString *messageID, *priority, *pureSender, *replyTo, *receipt;
 
   for (count = 0; count < 8; count++)
     {
@@ -288,30 +282,61 @@ static NSString    *userAgent      = nil;
   messageID = [headers objectForKey: @"message-id"];
   if (!messageID)
     {
-      messageID = [self _generateMessageID];
+      messageID = [NSString generateMessageID];
       [headers setObject: messageID forKey: @"message-id"];
     }
   
-  priority = [newHeaders objectForKey: @"priority"];
-  if (!priority || [priority isEqualToString: @"NORMAL"])
+  priority = [newHeaders objectForKey: @"X-Priority"];
+  if (priority)
     {
-      [headers removeObjectForKey: @"X-Priority"];
-    }
-  else if ([priority isEqualToString: @"HIGHEST"])
-    {
-      [headers setObject: @"1 (Highest)"  forKey: @"X-Priority"];
-    }
-  else if ([priority isEqualToString: @"HIGH"])
-    {
-      [headers setObject: @"2 (High)"  forKey: @"X-Priority"];
-    }
-  else if ([priority isEqualToString: @"LOW"])
-    {
-      [headers setObject: @"4 (Low)"  forKey: @"X-Priority"];
+      // newHeaders come from MIME message; convert X-Priority to Web representation
+      [headers setObject: priority  forKey: @"X-Priority"];
+      [headers removeObjectForKey: @"priority"];
+      if ([priority isEqualToString: @"1 (Highest)"])
+        {
+          [headers setObject: @"HIGHEST"  forKey: @"priority"];
+        }
+      else if ([priority isEqualToString: @"2 (High)"])
+        {
+          [headers setObject: @"HIGH"  forKey: @"priority"];
+        }
+      else if ([priority isEqualToString: @"4 (Low)"])
+        {
+          [headers setObject: @"LOW"  forKey: @"priority"];
+        }
+      else if ([priority isEqualToString: @"5 (Lowest)"])
+        {
+          [headers setObject: @"LOWEST"  forKey: @"priority"];
+        }
     }
   else
     {
-      [headers setObject: @"5 (Lowest)"  forKey: @"X-Priority"];
+      // newHeaders come from Web form; convert priority to MIME header representation
+      priority = [newHeaders objectForKey: @"priority"];
+      if (!priority || [priority isEqualToString: @"NORMAL"])
+        {
+          [headers removeObjectForKey: @"X-Priority"];
+        }
+      else if ([priority isEqualToString: @"HIGHEST"])
+        {
+          [headers setObject: @"1 (Highest)"  forKey: @"X-Priority"];
+        }
+      else if ([priority isEqualToString: @"HIGH"])
+        {
+          [headers setObject: @"2 (High)"  forKey: @"X-Priority"];
+        }
+      else if ([priority isEqualToString: @"LOW"])
+        {
+          [headers setObject: @"4 (Low)"  forKey: @"X-Priority"];
+        }
+      else
+        {
+          [headers setObject: @"5 (Lowest)"  forKey: @"X-Priority"];
+        }
+      if (priority)
+        {
+          [headers setObject: priority  forKey: @"priority"];
+        }
     }
 
   replyTo = [headers objectForKey: @"replyTo"];
@@ -321,14 +346,30 @@ static NSString    *userAgent      = nil;
     }
   [headers removeObjectForKey: @"replyTo"];
 
-  if ([[newHeaders objectForKey: @"receipt"] isEqualToString: @"true"])
+  receipt = [newHeaders objectForKey: @"Disposition-Notification-To"];
+  if ([receipt length] > 0)
     {
-      pureSender = [[newHeaders objectForKey: @"from"] pureEMailAddress];
-      if (pureSender)
-        [headers setObject: pureSender forKey: @"Disposition-Notification-To"];
+      [headers setObject: @"true"  forKey: @"receipt"];
+      [headers setObject: receipt forKey: @"Disposition-Notification-To"];
     }
   else
-    [headers removeObjectForKey: @"Disposition-Notification-To"];
+    {
+      receipt = [newHeaders objectForKey: @"receipt"];
+      if ([receipt isEqualToString: @"true"])
+        {
+          [headers setObject: receipt  forKey: @"receipt"];
+          pureSender = [[newHeaders objectForKey: @"from"] pureEMailAddress];
+          if (pureSender)
+            {
+              [headers setObject: pureSender forKey: @"Disposition-Notification-To"];
+            }
+        }
+      else
+        {
+          [headers removeObjectForKey: @"receipt"];
+          [headers removeObjectForKey: @"Disposition-Notification-To"];
+        }
+    }
 }
 
 - (NSDictionary *) headers
@@ -354,6 +395,11 @@ static NSString    *userAgent      = nil;
 - (BOOL) isHTML
 {
   return isHTML;
+}
+
+- (NSString *) inReplyTo
+{
+  return inReplyTo;
 }
 
 - (void) setInReplyTo: (NSString *) newInReplyTo
@@ -395,11 +441,17 @@ static NSString    *userAgent      = nil;
   [self setSourceFolder: [paths componentsJoinedByString: @"/"]];
 }
 
+//
+//
+//
 - (NSString *) sourceFolder
 {
   return sourceFolder;
 }
 
+//
+// Store the message definition in a plist file (.info.plist) in the spool directory
+//
 - (NSException *) storeInfo
 {
   NSMutableDictionary *infos;
@@ -415,6 +467,9 @@ static NSString    *userAgent      = nil;
                 forKey: @"isHTML"];
       if (inReplyTo)
 	[infos setObject: inReplyTo forKey: @"inReplyTo"];
+      if (sourceIMAP4ID > -1)
+	[infos setObject: [NSString stringWithFormat: @"%i", sourceIMAP4ID]
+		  forKey: @"sourceIMAP4ID"];
       if (IMAP4ID > -1)
 	[infos setObject: [NSString stringWithFormat: @"%i", IMAP4ID]
 		  forKey: @"IMAP4ID"];
@@ -446,6 +501,9 @@ static NSString    *userAgent      = nil;
   return error;
 }
 
+//
+//
+//
 - (void) _loadInfosFromDictionary: (NSDictionary *) infoDict
 {
   id value;
@@ -458,6 +516,10 @@ static NSString    *userAgent      = nil;
   if ([value length] > 0)
     [self setText: value];
   isHTML = [[infoDict objectForKey: @"isHTML"] boolValue];
+
+  value = [infoDict objectForKey: @"sourceIMAP4ID"];
+  if (value)
+    [self setSourceIMAP4ID: [value intValue]];
 
   value = [infoDict objectForKey: @"IMAP4ID"];
   if (value)
@@ -478,11 +540,17 @@ static NSString    *userAgent      = nil;
     [self setInReplyTo: value];
 }
 
+//
+//
+//
 - (NSString *) relativeImap4Name
 {
   return [NSString stringWithFormat: @"%d", IMAP4ID];
 }
 
+//
+//
+//
 - (void) fetchInfo
 {
   NSString *p;
@@ -504,16 +572,41 @@ static NSString    *userAgent      = nil;
     [self debugWithFormat: @"Note: info object does not yet exist: %@", p];
 }
 
+//
+//
+//
+- (void) setSourceIMAP4ID: (int) newSourceIMAP4ID
+{
+  sourceIMAP4ID = newSourceIMAP4ID;
+}
+
+//
+//
+//
+- (int) sourceIMAP4ID
+{
+  return sourceIMAP4ID;
+}
+
+//
+//
+//
 - (void) setIMAP4ID: (int) newIMAP4ID
 {
   IMAP4ID = newIMAP4ID;
 }
 
+//
+//
+//
 - (int) IMAP4ID
 {
   return IMAP4ID;
 }
 
+//
+//
+//
 - (NSException *) save
 {
   NGImap4Client *client;
@@ -535,23 +628,31 @@ static NSString    *userAgent      = nil;
     }
   
   folder = [imap4 imap4FolderNameForURL: [container imap4URL]];
-  result
-    = [client append: message toFolder: folder
-	      withFlags: [NSArray arrayWithObjects: @"seen", @"draft", nil]];
+  result = [client append: message toFolder: folder
+                withFlags: [NSArray arrayWithObjects: @"draft", nil]];
   if ([[result objectForKey: @"result"] boolValue])
     {
       if (IMAP4ID > -1)
 	error = [imap4 markURLDeleted: [self imap4URL]];
-      IMAP4ID = [self IMAP4IDFromAppendResult: result];
+      [self setIMAP4ID: [self IMAP4IDFromAppendResult: result]];
+      if (imap4URL)
+        {
+          // Invalidate the IMAP message URL since the message ID has changed
+          [imap4URL release];
+          imap4URL = nil;
+        }
       [self storeInfo];
     }
   else
-    error = [NSException exceptionWithHTTPStatus:500 /* Server Error */
-			 reason: @"Failed to store message"];
+    error = [NSException exceptionWithHTTPStatus: 500 /* Server Error */
+                                          reason: [result objectForKey: @"reason"]];
 
   return error;
 }
 
+//
+//
+//
 - (void) _addEMailsOfAddresses: (NSArray *) _addrs
 		       toArray: (NSMutableArray *) _ma
 {
@@ -564,6 +665,9 @@ static NSString    *userAgent      = nil;
       [_ma addObject: [currentAddress email]];
 }
 
+//
+//
+//
 - (void) _addRecipients: (NSArray *) recipients
 	        toArray: (NSMutableArray *) array
 {
@@ -576,6 +680,9 @@ static NSString    *userAgent      = nil;
       [array addObject: [currentAddress baseEMail]];
 }
 
+//
+//
+//
 - (void) _purgeRecipients: (NSArray *) recipients
 	    fromAddresses: (NSMutableArray *) addresses
 {
@@ -602,6 +709,9 @@ static NSString    *userAgent      = nil;
       }
 }
 
+//
+//
+//
 - (void) _fillInReplyAddresses: (NSMutableDictionary *) _info
 		    replyToAll: (BOOL) _replyToAll
 		      envelope: (NGImap4Envelope *) _envelope
@@ -619,11 +729,40 @@ static NSString    *userAgent      = nil;
     TODO: what about sender (RFC 822 3.6.2)
   */
   NSMutableArray *to, *addrs, *allRecipients;
-  NSArray *envelopeAddresses, *userEmails;
+  NSArray *envelopeAddresses;
 
   allRecipients = [NSMutableArray array];
-  userEmails = [[context activeUser] allEmails];
-  [allRecipients addObjectsFromArray: userEmails];
+
+  //
+  // When we do a Reply-To or a Reply-To-All, we strip our own addresses
+  // from the list of recipients so we don't reply to ourself! We check
+  // which addresses we should use - that is the ones for the current
+  // user if we're dealing with the default "SOGo mail account" or
+  // the ones specified in the auxiliary IMAP accounts
+  //
+  if ([[[self->container mailAccountFolder] nameInContainer] intValue] == 0)
+    {
+      NSArray *userEmails;
+
+      userEmails = [[context activeUser] allEmails];
+      [allRecipients addObjectsFromArray: userEmails];
+    }
+  else
+    {
+      NSArray *identities;
+      NSString *email;
+      int i;
+
+      identities = [[[self container] mailAccountFolder] identities];
+      
+      for (i = 0; i < [identities count]; i++)
+        {
+          email = [[identities objectAtIndex: i] objectForKey: @"email"];
+          
+          if (email)
+            [allRecipients addObject: email];
+        }
+    }
 
   to = [NSMutableArray arrayWithCapacity: 2];
 
@@ -634,20 +773,19 @@ static NSString    *userAgent      = nil;
   else
     [addrs setArray: [_envelope from]];
 
-  [self _purgeRecipients: allRecipients
-	fromAddresses: addrs];
-  [self _addEMailsOfAddresses: addrs toArray: to];
-  [self _addRecipients: addrs toArray: allRecipients];
-  [_info setObject: to forKey: @"to"];
+  [self _purgeRecipients: allRecipients  fromAddresses: addrs];
+  [self _addEMailsOfAddresses: addrs  toArray: to];
+  [self _addRecipients: addrs  toArray: allRecipients];
+  [_info setObject: to  forKey: @"to"];
 
   /* If "to" is empty, we add at least ourself as a recipient!
      This is for emails in the "Sent" folder that we reply to... */
   if (![to count])
     {
       if ([[_envelope replyTo] count])
-	[self _addEMailsOfAddresses: [_envelope replyTo] toArray: to];
+	[self _addEMailsOfAddresses: [_envelope replyTo]  toArray: to];
       else
-	[self _addEMailsOfAddresses: [_envelope from] toArray: to];
+	[self _addEMailsOfAddresses: [_envelope from]  toArray: to];
     }
 
   /* If we have no To but we have Cc recipients, let's move the Cc
@@ -661,7 +799,7 @@ static NSString    *userAgent      = nil;
       [_info removeObjectForKey: @"cc"];
     }
 
-  /* CC processing if we reply-to-all: add all 'to' and 'cc'  */
+  /* CC processing if we reply-to-all: - we add all 'to' and 'cc' fields */
   if (_replyToAll)
     {
       to = [NSMutableArray new];
@@ -683,6 +821,9 @@ static NSString    *userAgent      = nil;
     }
 }
 
+//
+//
+//
 - (NSArray *) _attachmentBodiesFromPaths: (NSArray *) paths
 		       fromResponseFetch: (NSDictionary *) fetch;
 {
@@ -703,15 +844,18 @@ static NSString    *userAgent      = nil;
   return bodies;
 }
 
-- (void) _fetchAttachments: (NSArray *) parts
-                  fromMail: (SOGoMailObject *) sourceMail
+//
+//
+//
+- (void) _fetchAttachmentsFromMail: (SOGoMailObject *) sourceMail
 {
   unsigned int count, max;
-  NSArray *paths, *bodies;
+  NSArray *parts, *paths, *bodies;
   NSData *body;
   NSDictionary *currentInfo;
   NGHashMap *response;
 
+  parts = [sourceMail fetchFileAttachmentKeys];
   max = [parts count];
   if (max > 0)
     {
@@ -730,17 +874,21 @@ static NSString    *userAgent      = nil;
     }
 }
 
+//
+//
+//
 - (void) fetchMailForEditing: (SOGoMailObject *) sourceMail
 {
   NSString *subject, *msgid;
   NSMutableDictionary *info;
+  NSDictionary *h;
   NSMutableArray *addresses;
   NGImap4Envelope *sourceEnvelope;
+  id priority, receipt;
 
   [sourceMail fetchCoreInfos];
 
-  [self _fetchAttachments: [sourceMail fetchFileAttachmentKeys]
-	fromMail: sourceMail];
+  [self _fetchAttachmentsFromMail: sourceMail];
   info = [NSMutableDictionary dictionaryWithCapacity: 16];
   subject = [sourceMail subject];
   if ([subject length] > 0)
@@ -766,20 +914,30 @@ static NSString    *userAgent      = nil;
   [self _addEMailsOfAddresses: [sourceEnvelope replyTo] toArray: addresses];
   if ([addresses count] > 0)
     [info setObject: addresses forKey: @"replyTo"];
+
+  h = [sourceMail mailHeaders];
+  priority = [h objectForKey: @"x-priority"];
+  if ([priority isNotEmpty] && [priority isKindOfClass: [NSString class]])
+      [info setObject: (NSString*)priority forKey: @"X-Priority"];
+  receipt = [h objectForKey: @"disposition-notification-to"];
+  if ([receipt isNotEmpty] && [receipt isKindOfClass: [NSString class]])
+      [info setObject: (NSString*)receipt forKey: @"Disposition-Notification-To"];
+
   [self setHeaders: info];
 
   [self setText: [sourceMail contentForEditing]];
-  [self setSourceURL: [sourceMail imap4URLString]];
   [self setIMAP4ID: [[sourceMail nameInContainer] intValue]];
-  [self setSourceFolderWithMailObject: sourceMail];
 
   [self storeInfo];
 }
 
+//
+//
+//
 - (void) fetchMailForReplying: (SOGoMailObject *) sourceMail
 			toAll: (BOOL) toAll
 {
-  NSString *contentForReply, *msgID;
+  NSString *msgID;
   NSMutableDictionary *info;
   NGImap4Envelope *sourceEnvelope;
 
@@ -790,16 +948,15 @@ static NSString    *userAgent      = nil;
 
   sourceEnvelope = [sourceMail envelope];
   [self _fillInReplyAddresses: info replyToAll: toAll
-	envelope: sourceEnvelope];
+                     envelope: sourceEnvelope];
   msgID = [sourceEnvelope messageID];
   if ([msgID length] > 0)
     [self setInReplyTo: msgID];
-  contentForReply = [sourceMail contentForReply];
-  [self setText: contentForReply];
+  [self setText: [sourceMail contentForReply]];
   [self setHeaders: info];
   [self setSourceURL: [sourceMail imap4URLString]];
   [self setSourceFlag: @"Answered"];
-  [self setIMAP4ID: [[sourceMail nameInContainer] intValue]];
+  [self setSourceIMAP4ID: [[sourceMail nameInContainer] intValue]];
   [self setSourceFolderWithMailObject: sourceMail];
 
   [self storeInfo];
@@ -822,7 +979,7 @@ static NSString    *userAgent      = nil;
   
   [self setSourceURL: [sourceMail imap4URLString]];
   [self setSourceFlag: @"$Forwarded"];
-  [self setIMAP4ID: [[sourceMail nameInContainer] intValue]];
+  [self setSourceIMAP4ID: [[sourceMail nameInContainer] intValue]];
   [self setSourceFolderWithMailObject: sourceMail];
 
   /* attach message */
@@ -830,8 +987,7 @@ static NSString    *userAgent      = nil;
   if ([[ud mailMessageForwarding] isEqualToString: @"inline"])
     {
       [self setText: [sourceMail contentForInlineForward]];
-      [self _fetchAttachments: [sourceMail fetchFileAttachmentKeys]
-	    fromMail: sourceMail];
+      [self _fetchAttachmentsFromMail: sourceMail];
     }
   else
     {
@@ -841,17 +997,21 @@ static NSString    *userAgent      = nil;
       if ([signature length])
         {
           nl = (isHTML ? @"<br/>" : @"\n");
-          [self setText: [NSString stringWithFormat: @"%@-- %@%@", nl, nl, signature]];
+          [self setText: [NSString stringWithFormat: @"%@%@-- %@%@", nl, nl, nl, signature]];
         }
       attachment = [NSDictionary dictionaryWithObjectsAndKeys:
 				   [sourceMail filenameForForward], @"filename",
 				 @"message/rfc822", @"mimetype",
 				 nil];
       [self saveAttachment: [sourceMail content]
-	    withMetadata: attachment];
+              withMetadata: attachment];
     }
 
   [self storeInfo];
+
+  // Save the message to the IMAP store so the user can eventually view the attached file(s)
+  // from the Web interface
+  [self save];
 }
 
 /* accessors */
@@ -870,13 +1030,19 @@ static NSString    *userAgent      = nil;
 
 /* attachments */
 
-- (NSArray *) fetchAttachmentNames
+//
+// Return the attributes (name, size and mime body part) of the files found in the draft folder
+// on the local filesystem
+//
+- (NSArray *) fetchAttachmentAttrs
 {
   NSMutableArray *ma;
   NSFileManager *fm;
   NSArray *files;
-  unsigned count, max;
   NSString *filename;
+  NSDictionary *fileAttrs;
+  NGMimeBodyPart *bodyPart;
+  unsigned count, max;
 
   fm = [NSFileManager defaultManager];
   files = [fm directoryContentsAtPath: [self draftFolderPath]];
@@ -887,7 +1053,13 @@ static NSString    *userAgent      = nil;
     {
       filename = [files objectAtIndex: count];
       if (![filename hasPrefix: @"."])
-	[ma addObject: filename];
+        {
+          fileAttrs = [fm fileAttributesAtPath: [self pathToAttachmentWithName: filename] traverseLink: YES];
+          bodyPart = [self bodyPartForAttachmentWithName: filename];
+          [ma addObject: [NSDictionary dictionaryWithObjectsAndKeys: filename, @"filename",
+                                       [fileAttrs objectForKey: @"NSFileSize"], @"size",
+                                       bodyPart, @"part", nil]];
+        }
     }
 
   return ma;
@@ -1045,19 +1217,19 @@ static NSString    *userAgent      = nil;
   
   if (!isHTML)
     {
-      [map setObject: contentTypeValue  forKey: @"content-type"];
+      [message setHeader: contentTypeValue  forKey: @"content-type"];
       body = text;
     }
   else
     {
       body = [[[NGMimeMultipartBody alloc] initWithPart: message] autorelease];
-      [map addObject: MultiAlternativeType forKey: @"content-type"];
+      [message setHeader: MultiAlternativeType forKey: @"content-type"];
+
+      // Get the text part from it and add it
+      [body addBodyPart: [self plainTextBodyPartForText]];
 
       // Add the HTML part
       [body addBodyPart: [self bodyPartForText]];
-      
-      // Get the text part from it and add it too
-      [body addBodyPart: [self plainTextBodyPartForText]];
     }
   
   [message setBody: body];
@@ -1146,8 +1318,8 @@ static NSString    *userAgent      = nil;
   /* check attachment */
   
   fm = [NSFileManager defaultManager];
-  p  = [self pathToAttachmentWithName:_name];
-  if (![fm isReadableFileAtPath:p]) {
+  p  = [self pathToAttachmentWithName: _name];
+  if (![fm isReadableFileAtPath: p]) {
     [self errorWithFormat: @"did not find attachment: '%@'", _name];
     return nil;
   }
@@ -1156,21 +1328,21 @@ static NSString    *userAgent      = nil;
   
   /* prepare header of body part */
 
-  map = [[[NGMutableHashMap alloc] initWithCapacity:4] autorelease];
+  map = [[[NGMutableHashMap alloc] initWithCapacity: 4] autorelease];
 
   if ((s = [self contentTypeForAttachmentWithName:_name]) != nil) {
-    [map setObject:s forKey: @"content-type"];
+    [map setObject: s forKey: @"content-type"];
     if ([s hasPrefix: @"text/plain"] || [s hasPrefix: @"text/html"])
       attachAsString = YES;
     else if ([s hasPrefix: @"message/rfc822"])
       attachAsRFC822 = YES;
   }
-  if ((s = [self contentDispositionForAttachmentWithName:_name]))
+  if ((s = [self contentDispositionForAttachmentWithName: _name]))
     {
       NGMimeContentDispositionHeaderField *o;
       
       o = [[NGMimeContentDispositionHeaderField alloc] initWithString: s];
-      [map setObject:o forKey: @"content-disposition"];
+      [map setObject: o forKey: @"content-disposition"];
       [o release];
     }
   
@@ -1205,7 +1377,6 @@ static NSString    *userAgent      = nil;
     if (attachAsRFC822)
       {
         [map setObject: @"8bit" forKey: @"content-transfer-encoding"];
-        [map setObject: @"inline" forKey: @"content-disposition"];
       }
     else
       {
@@ -1227,27 +1398,33 @@ static NSString    *userAgent      = nil;
   return bodyPart;
 }
 
+//
+//
+//
 - (NSArray *) bodyPartsForAllAttachments
 {
   /* returns nil on error */
-  NSArray  *names;
+  NSArray  *attrs;
   unsigned i, count;
   NGMimeBodyPart *bodyPart;
   NSMutableArray *bodyParts;
 
-  names = [self fetchAttachmentNames];
-  count = [names count];
+  attrs = [self fetchAttachmentAttrs];
+  count = [attrs count];
   bodyParts = [NSMutableArray arrayWithCapacity: count];
 
   for (i = 0; i < count; i++)
     {
-      bodyPart = [self bodyPartForAttachmentWithName: [names objectAtIndex: i]];
+      bodyPart = [self bodyPartForAttachmentWithName: [[attrs objectAtIndex: i] objectForKey: @"filename"]];
       [bodyParts addObject: bodyPart];
     }
 
   return bodyParts;
 }
 
+//
+//
+//
 - (NGMimeBodyPart *) mimeMultipartAlternative
 {
   NGMimeMultipartBody *textParts;
@@ -1261,11 +1438,11 @@ static NSString    *userAgent      = nil;
   
   textParts = [[NGMimeMultipartBody alloc] initWithPart: part];
   
+  // Get the text part from it and add it
+  [textParts addBodyPart: [self plainTextBodyPartForText]];
+
   // Add the HTML part
   [textParts addBodyPart: [self bodyPartForText]];
-  
-  // Get the text part from it and add it too
-  [textParts addBodyPart: [self plainTextBodyPartForText]];
 
   [part setBody: textParts];
   RELEASE(textParts);
@@ -1273,6 +1450,9 @@ static NSString    *userAgent      = nil;
   return part;
 }
 
+//
+//
+//
 - (NGMimeMessage *) mimeMultiPartMessageWithHeaderMap: (NGMutableHashMap *) map
 					 andBodyParts: (NSArray *) _bodyParts
 {
@@ -1312,6 +1492,9 @@ static NSString    *userAgent      = nil;
   return message;
 }
 
+//
+//
+//
 - (void) _addHeaders: (NSDictionary *) _h
          toHeaderMap: (NGMutableHashMap *) _map
 {
@@ -1446,10 +1629,11 @@ static NSString    *userAgent      = nil;
   /* add subject */
   if ([(s = [headers objectForKey: @"subject"]) length] > 0)
     [map setObject: [s asQPSubjectString: @"utf-8"]
-	 forKey: @"subject"];
-
-  [map setObject: [headers objectForKey: @"message-id"]
-       forKey: @"message-id"];
+            forKey: @"subject"];
+  
+  if ([(s = [headers objectForKey: @"message-id"]) length] > 0)
+    [map setObject: s
+            forKey: @"message-id"];
 
   /* add standard headers */
   dateString = [[NSCalendarDate date] rfc822DateString];
@@ -1483,60 +1667,78 @@ static NSString    *userAgent      = nil;
   return map;
 }
 
+//
+//
+//
 - (NGMimeMessage *) mimeMessageWithHeaders: (NSDictionary *) _headers
 				 excluding: (NSArray *) _exclude
+                          extractingImages: (BOOL) _extractImages
 {
-  NGMutableHashMap  *map;
-  NSArray           *bodyParts;
-  NGMimeMessage     *message;
+  NSMutableArray *bodyParts;
+  NGMimeMessage *message;
+  NGMutableHashMap *map;
+  NSString *newText;
 
   message = nil;
 
+  bodyParts = [NSMutableArray array];
+
+  if (_extractImages)
+    {
+      newText = [text htmlByExtractingImages: bodyParts];
+      if ([bodyParts count])
+        [self setText: newText];
+    }
+
   map = [self mimeHeaderMapWithHeaders: _headers
-	      excluding: _exclude];
+                             excluding: _exclude];
   if (map)
     {
       //[self debugWithFormat: @"MIME Envelope: %@", map];
-  
-      bodyParts = [self bodyPartsForAllAttachments];
-      if (bodyParts)
-	{
-	  //[self debugWithFormat: @"attachments: %@", bodyParts];
-  
-	  if ([bodyParts count] == 0)
-	    /* no attachments */
-	    message = [self mimeMessageForContentWithHeaderMap: map];
-	  else
-	    /* attachments, create multipart/mixed */
-	    message = [self mimeMultiPartMessageWithHeaderMap: map 
-			    andBodyParts: bodyParts];
-	  //[self debugWithFormat: @"message: %@", message];
-	}
+      
+      [bodyParts addObjectsFromArray: [self bodyPartsForAllAttachments]];
+      
+      //[self debugWithFormat: @"attachments: %@", bodyParts];
+      
+      if ([bodyParts count] == 0)
+        /* no attachments */
+        message = [self mimeMessageForContentWithHeaderMap: map];
       else
-	[self errorWithFormat:
-		@"could not create body parts for attachments!"];
+        /* attachments, create multipart/mixed */
+        message = [self mimeMultiPartMessageWithHeaderMap: map 
+                                             andBodyParts: bodyParts];
+      //[self debugWithFormat: @"message: %@", message];
     }
-
+  
   return message;
 }
 
+//
+// Return a NGMimeMessage object with inline HTML images (<img src=data>) extracted as attachments (<img src=cid>).
+//
 - (NGMimeMessage *) mimeMessage
 {
-  return [self mimeMessageWithHeaders: nil  excluding: nil];
+  return [self mimeMessageWithHeaders: nil  excluding: nil  extractingImages: YES];
 }
 
+//
+// Return a NSData object of the message with no alteration.
+//
 - (NSData *) mimeMessageAsData
 {
   NGMimeMessageGenerator *generator;
   NSData *message;
 
   generator = [NGMimeMessageGenerator new];
-  message = [generator generateMimeFromPart: [self mimeMessage]];
+  message = [generator generateMimeFromPart: [self mimeMessageWithHeaders: nil  excluding: nil  extractingImages: NO]];
   [generator release];
 
   return message;
 }
 
+//
+//
+//
 - (NSArray *) allRecipients
 {
   NSMutableArray *allRecipients;
@@ -1550,12 +1752,15 @@ static NSString    *userAgent      = nil;
     {
       recipients = [headers objectForKey: fieldNames[count]];
       if ([recipients count] > 0)
-	[allRecipients addObjectsFromArray: recipients];
+        [allRecipients addObjectsFromArray: recipients];
     }
 
   return allRecipients;
 }
 
+//
+//
+//
 - (NSArray *) allBareRecipients
 {
   NSMutableArray *bareRecipients;
@@ -1571,11 +1776,74 @@ static NSString    *userAgent      = nil;
   return bareRecipients;
 }
 
+//
+//
+//
 - (NSException *) sendMail
 {
+  SOGoUserDefaults *ud;
+  
+  ud = [[context activeUser] userDefaults];
+  
+  if ([ud mailAddOutgoingAddresses])
+    {
+      NSString *recipient, *emailAddress, *addressBook, *uid;
+      NSArray *matchingContacts, *recipients;
+      SOGoContactFolders *contactFolders;
+      SOGoContactGCSEntry *newContact;
+      NGMailAddress *parsedRecipient;
+      NGMailAddressParser *parser;
+      SOGoContactFolder *folder;
+      NGVCard *card;
+ 
+      int i;
+    
+      // Get all the addressbooks
+      contactFolders = [[[context activeUser] homeFolderInContext: context]
+                         lookupName: @"Contacts"
+                          inContext: context
+                            acquire: NO];
+      // Get all the recipients from the current email
+      recipients = [self allRecipients];
+      for (i = 0; i < [recipients count]; i++)
+        {
+          // The address contains a string. ex: "John Doe <sogo1@exemple.com>"
+          recipient = [recipients objectAtIndex: i];
+          parser = [NGMailAddressParser mailAddressParserWithString: recipient];
+          parsedRecipient = [parser parse];
+          emailAddress = [parsedRecipient address];
+      
+          matchingContacts = [contactFolders allContactsFromFilter: emailAddress
+                                                     excludeGroups: YES
+                                                      excludeLists: YES];
+        }
+      // If we don't get any results from the autocompletion code, we add it..
+      if ([matchingContacts count] == 0)
+        {
+          // Get the selected addressbook from the user preferences where the new address will be added
+          addressBook = [ud selectedAddressBook];
+          folder = [contactFolders lookupName: addressBook inContext: context  acquire: NO];
+          uid = [folder globallyUniqueObjectId];
+      
+          if (folder && uid)
+            {
+              card = [NGVCard cardWithUid: uid];
+              [card addEmail: emailAddress types: nil];
+              [card setFn: [parsedRecipient displayName]];
+              
+              newContact = [SOGoContactGCSEntry objectWithName: uid
+                                                   inContainer: folder];
+              [newContact setIsNew: YES];
+              [newContact saveComponent: card];
+            }
+        }
+    }
   return [self sendMailAndCopyToSent: YES];
 }
 
+//
+//
+//
 - (NSException *) sendMailAndCopyToSent: (BOOL) copyToSent
 {
   NSMutableData *cleaned_message;
@@ -1592,9 +1860,8 @@ static NSString    *userAgent      = nil;
   NGMimeMessageGenerator *generator;
 
   generator = [[[NGMimeMessageGenerator alloc] init] autorelease];
-  message = [generator generateMimeFromPart: [self mimeMessageWithHeaders: nil 
-                                                                excluding: nil]];
-      
+  message = [generator generateMimeFromPart: [self mimeMessage]];
+
   //
   // We now look for the Bcc: header. If it is present, we remove it.
   // Some servers, like qmail, do not remove it automatically.

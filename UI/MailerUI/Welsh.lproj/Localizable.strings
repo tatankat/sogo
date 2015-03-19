@@ -76,7 +76,6 @@
 "Remove this folder" = "Dileu'r ffolder hwn";
 "Erase mails from this folder" = "Dileu ebost o'r ffolder hwn";
 "Expunge this folder" = "Dileu'r ffolder hwn";
-"Archive This Folder" = "Archive This Folder";
 "Modify the acl of this folder" = "Newid acl y ffolder";
 
 "Saved Messages.zip" = "Saved Messages.zip";
@@ -165,8 +164,6 @@
 "InboxFolderName"  = "Newydd";
 "DraftsFolderName" = "Draffts";
 "SieveFolderName"  = "Ffilteri";
-"OtherUsersFolderName"   = "Other Users";
-"SharedFoldersName" = "Shared Folders";
 "Folders"          = "Ffolderi"; /* title line */
 
 /* MailMoveToPopUp */
@@ -225,11 +222,6 @@
 
 /* Label popup menu */
 "None" = "Dim";
-"Important" = "Pwysig";
-"Work" = "gwaith";
-"Personal" = "Personol";
-"To Do" = "I'w wneud";
-"Later" = "Hwyrach";
 
 /* Mark popup menu */
 "As Read" = "Darllenwyd";

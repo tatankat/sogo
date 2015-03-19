@@ -79,7 +79,6 @@
 "Remove this folder" = "Вилучати цю теку";
 "Erase mails from this folder" = "Вилучати повідомлення з цієї теки";
 "Expunge this folder" = "Позначати листи як вилучені";
-"Archive This Folder" = "Архівувати цю теку";
 "Modify the acl of this folder" = "Керувати правами доступу до цієї теки";
 
 "Saved Messages.zip" = "Збережено Messages.zip";
@@ -168,8 +167,6 @@
 "InboxFolderName"  = "Вхідні";
 "DraftsFolderName" = "Чернетки";
 "SieveFolderName"  = "Теки";
-"OtherUsersFolderName"   = "Інші користувачі";
-"SharedFoldersName" = "Спільні теки";
 "Folders"          = "Всі теки"; /* title line */
 
 /* MailMoveToPopUp */
@@ -227,11 +224,6 @@
 
 /* Label popup menu */
 "None" = "Вилучити всі позначки";
-"Important" = "Важливе";
-"Work" = "Робоче";
-"Personal" = "Особисте";
-"To Do" = "До виконання";
-"Later" = "Відсунуте";
 
 /* Mark popup menu */
 "As Read" = "Прочитаним";

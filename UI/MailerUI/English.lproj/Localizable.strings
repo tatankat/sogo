@@ -13,6 +13,7 @@
 "Print"       = "Print";
 "Stop"        = "Stop";
 "Write"       = "Write";
+"Search"      = "Search";
 
 "Send" = "Send";
 "Contacts" = "Contacts";
@@ -41,6 +42,7 @@
 "Attachment" = "Attachment";
 "Unread" = "Unread";
 "Flagged" = "Flagged";
+"Search multiple mailboxes" = "Search multiple mailboxes";
 
 /* Main Frame  */
 
@@ -79,7 +81,7 @@
 "Remove this folder" = "Remove this folder";
 "Erase mails from this folder" = "Erase mails from this folder";
 "Expunge this folder" = "Expunge this folder";
-"Archive This Folder" = "Archive this folder";
+"Export This Folder" = "Export This Folder";
 "Modify the acl of this folder" = "Modify the acl of this folder";
 
 "Saved Messages.zip" = "Saved Messages.zip";
@@ -94,14 +96,16 @@
 "To"            = "To";
 "Cc"            = "Cc";
 "Bcc"           = "Bcc";
-"Reply-To"	= "Reply-To";
+"Reply-To"	    = "Reply-To";
 "Add address"   = "Add address";
+"Body"          = "Body";
 
-"Attachments:" = "Attachments:";
 "Open" = "Open";
 "Select All" = "Select All";
 "Attach Web Page..." = "Attach Web Page...";
-"Attach File(s)..." = "Attach File(s)...";
+"file" = "file";
+"files" = "files";
+"Save all" = "Save all";
 
 "to"            = "To";
 "cc"            = "Cc";
@@ -168,8 +172,6 @@
 "InboxFolderName"  = "Inbox";
 "DraftsFolderName" = "Drafts";
 "SieveFolderName"  = "Filters";
-"OtherUsersFolderName"   = "Other Users";
-"SharedFoldersName" = "Shared Folders";
 "Folders"          = "Folders"; /* title line */
 
 /* MailMoveToPopUp */
@@ -227,11 +229,6 @@
 
 /* Label popup menu */
 "None" = "None";
-"Important" = "Important";
-"Work" = "Work";
-"Personal" = "Personal";
-"To Do" = "To Do";
-"Later" = "Later";
 
 /* Mark popup menu */
 "As Read" = "As Read";
@@ -242,6 +239,18 @@
 "As Junk" = "As Junk";
 "As Not Junk" = "As Not Junk";
 "Run Junk Mail Controls" = "Run Junk Mail Controls";
+
+"Search messages in:" = "Search messages in:";
+"Search" = "Search";
+"Search subfolders" = "Search subfolders";
+"Match any of the following" = "Match any of the following";
+"Match all of the following" = "Match all of the following";
+"contains" = "contains";
+"does not contain" = "does not contain";
+"No matches found" = "No matches found";
+"results found" = "results found";
+"result found" = "result found";
+"Please specify at least one filter" = "Please specify at least one filter";
 
 /* Folder operations */
 "Name :" = "Name :";
@@ -285,6 +294,9 @@
 "error_missingsubject" = "The message has no subject. Are you sure you want to send it?";
 "error_missingrecipients" = "Please specify at least one recipient.";
 "Send Anyway" = "Send Anyway";
+"Error while saving the draft:" = "Error while saving the draft:";
+"Error while uploading the file \"%{0}\":" = "Error while uploading the file \"%{0}\":";
+"There is an active file upload. Closing the window will interrupt it." = "There is an active file upload. Closing the window will interrupt it.";
 
 /* Message sending */
 "cannot send message: (smtp) all recipients discarded" = "Cannot send message: all recipients are invalid.";

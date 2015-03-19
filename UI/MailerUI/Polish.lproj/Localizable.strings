@@ -13,6 +13,7 @@
 "Print"       = "Drukuj";
 "Stop"        = "Zatrzymaj";
 "Write"       = "Napisz";
+"Search"      = "Szukaj";
 
 "Send" = "Wyślij";
 "Contacts" = "Kontakty";
@@ -41,6 +42,7 @@
 "Attachment" = "Załącznik";
 "Unread" = "Nie przeczytane";
 "Flagged" = "Oflagowane";
+"Search multiple mailboxes" = "Przeszukaj wiele skrzynek";
 
 /* Main Frame  */
 
@@ -79,7 +81,7 @@
 "Remove this folder" = "Usuń ten folder";
 "Erase mails from this folder" = "Usuń wiadomości z tego folderu";
 "Expunge this folder" = "Wyczyść ostatecznie ten folder";
-"Archive This Folder" = "Zarchiwizuj ten folder";
+"Export This Folder" = "Eksportuj ten folder";
 "Modify the acl of this folder" = "Modyfikuj uprawnienia ACL tego folderu";
 
 "Saved Messages.zip" = "Zapisano Messages.zip";
@@ -94,14 +96,16 @@
 "To"            = "Do";
 "Cc"            = "DW";
 "Bcc"           = "UDW";
-"Reply-To"	= "Odpowiedź do";
+"Reply-To"	    = "Odpowiedź do";
 "Add address"   = "Dodaj adres";
+"Body"          = "Treść";
 
-"Attachments:" = "Załączniki:";
 "Open" = "Otwórz";
 "Select All" = "Zaznacz wszystkie";
 "Attach Web Page..." = "Załącz stronę Web";
-"Attach File(s)..." = "Załącz plik(i)";
+"file" = "plik";
+"files" = "pliki";
+"Save all" = "Zapisz wszystkie";
 
 "to"            = "Do";
 "cc"            = "DW";
@@ -168,8 +172,6 @@
 "InboxFolderName"  = "Odebrane";
 "DraftsFolderName" = "Szkice";
 "SieveFolderName"  = "Filtry";
-"OtherUsersFolderName"   = "Inni użytkownicy";
-"SharedFoldersName" = "Foldery współdzielone";
 "Folders"          = "Foldery"; /* title line */
 
 /* MailMoveToPopUp */
@@ -227,11 +229,6 @@
 
 /* Label popup menu */
 "None" = "Brak";
-"Important" = "Ważne";
-"Work" = "Praca";
-"Personal" = "Osobiste";
-"To Do" = "Do zrobienia";
-"Later" = "Później";
 
 /* Mark popup menu */
 "As Read" = "Jako przeczytane";
@@ -241,7 +238,19 @@
 "Flag" = "Flaga";
 "As Junk" = "Jako śmieć";
 "As Not Junk" = "Jako nie-śmieć";
-"Run Junk Mail Controls" = "Uruchom kontrole wiadomości śmieci";
+"Run Junk Mail Controls" = "Uruchom kontrolę wiadomości śmieci";
+
+"Search messages in:" = "Szukaj wiadomości w:";
+"Search" = "Szukaj";
+"Search subfolders" = "Przeszukaj podfoldery";
+"Match any of the following" = "Dopasuj dowolny z warunków";
+"Match all of the following" = "Dopasuj wszystkie warunki";
+"contains" = "zawiera";
+"does not contain" = "nie zawiera";
+"No matches found" = "Żadna wiadomość nie pasuje";
+"results found" = "wiadomości pasuje";
+"result found" = "pasująca wiadomość";
+"Please specify at least one filter" = "Wybierz co najmniej jeden filtr";
 
 /* Folder operations */
 "Name :" = "Nazwa :";
@@ -285,6 +294,9 @@
 "error_missingsubject" = "Brak tematu";
 "error_missingrecipients" = "Brak odbiorców";
 "Send Anyway" = "Wyślij mimo wszystko";
+"Error while saving the draft:" = "Błąd zapisu kopii roboczej";
+"Error while uploading the file \"%{0}\":" = "Błąd w trakcie wysyłania pliku \"%{0}\":";
+"There is an active file upload. Closing the window will interrupt it." = "Trwa przesyłanie pliku. Zamknięcie okna przerwie tą transmisję.";
 
 /* Message sending */
 "cannot send message: (smtp) all recipients discarded" = "Nie można wysłać wiadomości - wszyscy odbiorcy zostali odrzuceni.";

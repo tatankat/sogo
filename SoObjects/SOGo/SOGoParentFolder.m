@@ -1,8 +1,6 @@
 /* SOGoParentFolder.m - this file is part of SOGo
  *
- * Copyright (C) 2006-2009 Inverse inc.
- *
- * Author: Wolfgang Sourdeau <wsourdeau@inverse.ca>
+ * Copyright (C) 2006-2015 Inverse inc.
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,7 +36,7 @@
 #import <DOM/DOMElement.h>
 #import <DOM/DOMProtocols.h>
 #import <SaxObjC/XMLNamespaces.h>
-
+#import <SOGo/SOGoUserDefaults.h>
 #import <SOGo/SOGoUserSettings.h>
 
 #import "NSObject+DAV.h"
@@ -153,62 +151,99 @@ static SoSecurityManager *sm = nil;
   return @"Personal";
 }
 
-- (void) _createPersonalFolder
+- (NSString *) collectedFolderName
+{
+  return @"Collected";
+}
+
+- (void) createSpecialFolder: (SOGoFolderType) folderType
 {
   NSArray *roles;
+  NSString *folderName;
   SOGoGCSFolder *folder;
   SOGoUser *folderOwner;
-
+  SOGoUserDefaults *ud;
+  
   roles = [[context activeUser] rolesForObject: self inContext: context];
   folderOwner = [SOGoUser userWithLogin: [self ownerInContext: context]];
-
+  
+  
   // We autocreate the calendars if the user is the owner, a superuser or
   // if it's a resource as we won't necessarily want to login as a resource
   // in order to create its database tables.
+  // FolderType is an enum where 0 = Personal and 1 = collected
   if ([roles containsObject: SoRole_Owner] ||
       (folderOwner && [folderOwner isResource]))
+  {
+    if (folderType == SOGoPersonalFolder)
     {
-      folder = [subFolderClass objectWithName: @"personal" inContainer: self];
+      folderName = @"personal";
+      folder = [subFolderClass objectWithName: folderName inContainer: self];
       [folder setDisplayName: [self defaultFolderName]];
-      [folder
-	setOCSPath: [NSString stringWithFormat: @"%@/personal", OCSPath]];
+      [folder setOCSPath: [NSString stringWithFormat: @"%@/%@", OCSPath, folderName]];
+      
       if ([folder create])
-	[subFolders setObject: folder forKey: @"personal"];
+      [subFolders setObject: folder forKey: folderName];
     }
+    else if (folderType == SOGoCollectedFolder)
+    {
+      ud = [[context activeUser] userDefaults];
+      if ([ud mailAddOutgoingAddresses]) {
+        folderName = @"collected";
+        folder = [subFolderClass objectWithName: folderName inContainer: self];
+        [folder setDisplayName: [self collectedFolderName]];
+        [folder setOCSPath: [NSString stringWithFormat: @"%@/%@", OCSPath, folderName]];
+        
+        if ([folder create])
+          [subFolders setObject: folder forKey: folderName];
+        
+        [ud setSelectedAddressBook:folderName];
+      }
+    }
+  }
 }
 
-- (NSException *) _fetchPersonalFolders: (NSString *) sql
-			    withChannel: (EOAdaptorChannel *) fc
+- (NSException *) fetchSpecialFolders: (NSString *) sql
+                          withChannel: (EOAdaptorChannel *) fc
+                        andFolderType: (SOGoFolderType) folderType
 {
   NSArray *attrs;
   NSDictionary *row;
   SOGoGCSFolder *folder;
   NSString *key;
   NSException *error;
+  SOGoUserDefaults *ud;
+  ud = [[context activeUser] userDefaults];
 
   if (!subFolderClass)
     subFolderClass = [[self class] subFolderClass];
 
   error = [fc evaluateExpressionX: sql];
   if (!error)
+  {
+    attrs = [fc describeResults: NO];
+    while ((row = [fc fetchAttributes: attrs withZone: NULL]))
     {
-      attrs = [fc describeResults: NO];
-      while ((row = [fc fetchAttributes: attrs withZone: NULL]))
-	{
-	  key = [row objectForKey: @"c_path4"];
-	  if ([key isKindOfClass: [NSString class]])
-	    {
-	      folder = [subFolderClass objectWithName: key inContainer: self];
-	      [folder setOCSPath: [NSString stringWithFormat: @"%@/%@",
-					    OCSPath, key]];
-              [subFolders setObject: folder forKey: key];
-	    }
-	}
-
-      if (![subFolders objectForKey: @"personal"])
-	[self _createPersonalFolder];
+      key = [row objectForKey: @"c_path4"];
+      if ([key isKindOfClass: [NSString class]])
+      {
+        folder = [subFolderClass objectWithName: key inContainer: self];
+        [folder setOCSPath: [NSString stringWithFormat: @"%@/%@", OCSPath, key]];
+        [subFolders setObject: folder forKey: key];
+      }
     }
-
+    if (folderType == SOGoPersonalFolder)
+    {
+      if (![subFolders objectForKey: @"personal"])
+        [self createSpecialFolder: SOGoPersonalFolder];
+    }
+    else if (folderType == SOGoCollectedFolder)
+    {
+      if (![subFolders objectForKey: @"collected"])
+        if ([[ud selectedAddressBook] isEqualToString:@"collected"])
+          [self createSpecialFolder: SOGoCollectedFolder];
+    }
+  }
   return error;
 }
 
@@ -221,25 +256,21 @@ static SoSecurityManager *sm = nil;
   NSException *error;
 
   cm = [GCSChannelManager defaultChannelManager];
-  folderLocation
-    = [[GCSFolderManager defaultFolderManager] folderInfoLocation];
+  folderLocation = [[GCSFolderManager defaultFolderManager] folderInfoLocation];
   fc = [cm acquireOpenChannelForURL: folderLocation];
   if ([fc isOpen])
-    {
-      gcsFolderType = [[self class] gcsFolderType];
-      
-      sql
-	= [NSString stringWithFormat: (@"SELECT c_path4 FROM %@"
-				       @" WHERE c_path2 = '%@'"
-				       @" AND c_folder_type = '%@'"),
-		    [folderLocation gcsTableName],
-                    owner,
-		    gcsFolderType];
-      error = [self _fetchPersonalFolders: sql withChannel: fc];
-      [cm releaseChannel: fc];
-//       sql = [sql stringByAppendingFormat:@" WHERE %@ = '%@'", 
-//                  uidColumnName, [self uid]];
-    }
+  {
+    gcsFolderType = [[self class] gcsFolderType];
+    
+    sql = [NSString stringWithFormat: (@"SELECT c_path4 FROM %@"
+                                       @" WHERE c_path2 = '%@'"
+                                       @" AND c_folder_type = '%@'"),
+          [folderLocation gcsTableName], owner, gcsFolderType];
+    
+    error = [self fetchSpecialFolders: sql withChannel: fc andFolderType: SOGoPersonalFolder];
+    
+    [cm releaseChannel: fc];
+  }
   else
     error = [NSException exceptionWithName: @"SOGoDBException"
 			 reason: @"database connection could not be open"
@@ -247,6 +278,7 @@ static SoSecurityManager *sm = nil;
 
   return error;
 }
+
 
 - (NSException *) appendSystemSources
 {
@@ -260,6 +292,18 @@ static SoSecurityManager *sm = nil;
   subscribedFolder
     = [subFolderClass folderWithSubscriptionReference: sourceKey
 		      inContainer: self];
+
+  // We check with -ocsFolderForPath if the folder also exists in the database.
+  // This is important because user A could delete folder X, and user B has subscribed to it.
+  // If the "default roles" are enabled for calendars/address books, -validatePersmission:.. will
+  // work (grabbing the default role) and the deleted resource will be incorrectly returned.
+  //
+  // FIXME - 2015/01/29 - this fix (24c6c8c91d421594bd51f07904d4cd3911cd187c) was reverted. Normally, we should add
+  // [subscribedFolder ocsFolderForPath: [subscribedFolder ocsPath]] to check the existence of the folder but it causes
+  // massive SQL traffic.
+  // 
+  // The proper fix would be to check upon login and only upon login if GCS folders that we're subscribed to are still existent.
+  //
   if (subscribedFolder
       && ![sm validatePermission: SOGoPerm_AccessObject
 			onObject: subscribedFolder
@@ -278,12 +322,11 @@ static SoSecurityManager *sm = nil;
   NSMutableDictionary *folderDisplayNames;
   NSMutableArray *subscribedReferences;
   SOGoUserSettings *settings;
-  NSEnumerator *allKeys;
   NSString *currentKey;
   SOGoUser *ownerUser;
   NSException *error;
   id o;
-
+  int i;
   BOOL dirty;
 
   error = nil; /* we ignore non-DB errors at this time... */
@@ -300,9 +343,9 @@ static SoSecurityManager *sm = nil;
   else
     folderDisplayNames = nil;
 
-  allKeys = [subscribedReferences objectEnumerator];
-  while ((currentKey = [allKeys nextObject]))
+  for (i = [subscribedReferences count] - 1; i >= 0; i--)
     {
+      currentKey = [subscribedReferences objectAtIndex: i];
       if (![self _appendSubscribedSource: currentKey])
 	{
 	  // We no longer have access to this subscription, let's
@@ -322,6 +365,7 @@ static SoSecurityManager *sm = nil;
       if (folderDisplayNames)
         [[settings objectForKey: nameInContainer] setObject: folderDisplayNames
                                                      forKey: @"FolderDisplayNames"];
+      [settings synchronize];
     }
 	    
   return error;
@@ -388,12 +432,15 @@ static SoSecurityManager *sm = nil;
       subFolders = [NSMutableDictionary new];
       error = [self appendPersonalSources];
       if (!error)
-	error = [self appendSystemSources];
+        if ([self respondsToSelector:@selector(appendCollectedSources)])
+          error = [self appendCollectedSources];
+      if (!error)
+        error = [self appendSystemSources]; // TODO : Not really a testcase, see function
       if (error)
-	{
-	  [subFolders release];
-	  subFolders = nil;
-	}
+      {
+        [subFolders release];
+        subFolders = nil;
+      }
     }
   else
     error = nil;

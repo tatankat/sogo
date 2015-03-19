@@ -12,6 +12,7 @@
 "Forward" = "Doorsturen";
 "Password" = "Wachtwoord";
 "Categories" = "Categorieën";
+"Appointments invitations" = "Uitnodigingen voor afspraken";
 "Name" = "Naam";
 "Color" = "Kleur";
 "Add" = "Toevoegen";
@@ -97,13 +98,16 @@
 "Show time as busy outside working hours" = "Tijd buiten werkdag weergeven als bezet";
 "First week of year :" = "Eerste week van het jaar:";
 "Enable reminders for Calendar items" = "Herinneringen inschakelen voor afspraken";
-"Play a sound when a reminder comes due"
-= "Geluid afspelen bij herinnering";
+"Play a sound when a reminder comes due" = "Geluid afspelen bij herinnering";
 "Default reminder :" = "Standaardherinnering:";
 
 "firstWeekOfYear_January1" = "Begint op 1 januari";
 "firstWeekOfYear_First4DayWeek" = "Eerste week met 4 dagen";
 "firstWeekOfYear_FirstFullWeek" = "Eerste volledige week";
+
+"Prevent from being invited to appointments" = "Voorkom uitgenodigingen voor gebeurtenissen";
+"White list for appointment invitations:" = "Whitelist voor uitnodigingen:";
+"Contacts Names" = "Contactnamen";
 
 /* Default Calendar */
 "Default calendar :" = "Standaardagenda:";
@@ -111,31 +115,26 @@
 "personalCalendar" = "Persoonlijke agenda";
 "firstCalendar" = "Eerste ingeschakelde agenda";
 
-"reminderTime_0000" = "0 minuten";
-"reminderTime_0005" = "5 minuten";
-"reminderTime_0010" = "10 minuten";
-"reminderTime_0015" = "15 minuten";
-"reminderTime_0030" = "30 minuten";
-"reminderTime_0100" = "1 uur";
-"reminderTime_0200" = "2 uren";
-"reminderTime_0400" = "4 uren";
-"reminderTime_0800" = "8 uren";
-"reminderTime_1200" = "1/2 dag";
-"reminderTime_2400" = "1 dag";
-"reminderTime_4800" = "2 dagen";
+"reminder_NONE" = "Geen herinnering";
+"reminder_5_MINUTES_BEFORE" = "5 minuten";
+"reminder_10_MINUTES_BEFORE" = "10 minuten";
+"reminder_15_MINUTES_BEFORE" = "15 minuten";
+"reminder_30_MINUTES_BEFORE" = "30 minuten";
+"reminder_45_MINUTES_BEFORE" = "45 minuten van tevoren";
+"reminder_1_HOUR_BEFORE" = "1 uur";
+"reminder_2_HOURS_BEFORE" = "2 uren";
+"reminder_5_HOURS_BEFORE" = "5 uren";
+"reminder_15_HOURS_BEFORE" = "15 uren";
+"reminder_1_DAY_BEFORE" = "1 dag";
+"reminder_2_DAYS_BEFORE" = "2 dagen";
+"reminder_1_WEEK_BEFORE" = "1 week van tevoren";
 
 /* Mailer */
+"Labels" = "Labels";
+"Label" = "Labelen";
 "Show subscribed mailboxes only" = "Toon alleen geabonneerde postvakken";
 "Sort messages by threads" = "Berichten sorteren op threads";
-"Check for new mail:" = "Controleren op nieuwe mail:";
-"messagecheck_manually" = "Handmatig";
-"messagecheck_every_minute" = "Iedere minuut";
-"messagecheck_every_2_minutes" = "Iedere 2 minuten";
-"messagecheck_every_5_minutes" = "Iedere 5 minuten";
-"messagecheck_every_10_minutes" = "Iedere 10 minuten";
-"messagecheck_every_20_minutes" = "Iedere 20 minuten";
-"messagecheck_every_30_minutes" = "Iedere 30 minuten";
-"messagecheck_once_per_hour" = "Ieder uur";
+"When sending mail, add unknown recipients to my" = "Bij het versturen van mail, voeg onbekende ontvangers toe aan mijn";
 
 "Forward messages:" = "Berichten doorsturen:";
 "messageforward_inline" = "In het bericht";
@@ -153,6 +152,13 @@
 "Display remote inline images" = "Externe afbeeldingen tonen";
 "displayremoteinlineimages_never" = "Nooit";
 "displayremoteinlineimages_always" = "Altijd";
+
+"Auto save every" = "Automatisch opslaan elke";
+"minutes" = "minuten";
+
+/* Contact */
+"Personal Address Book" = "Persoonlijk adresboek";
+"Collected Address Book" = "Verzameld adresboek";
 
 /* IMAP Accounts */
 "New Mail Account" = "Nieuw mailaccount";
@@ -200,7 +206,8 @@
 "Contacts" = "Adresboek";
 "Mail" = "Mail";
 "Last" = "Laatst gebruikt";
-"Default module :" = "Standaardmodule:";
+"Default Module :" = "Standaardmodule:";
+"SOGo Version :" = "SOGo versie:";
 
 "Language :" = "Taal:";
 "choose" = "Kies...";
@@ -228,6 +235,16 @@
 "Ukrainian" = "Українська";
 "Welsh" = "Cymraeg";
 
+"Refresh View :" = "Overzicht verversen";
+"refreshview_manually" = "Handmatig";
+"refreshview_every_minute" = "Iedere minuut";
+"refreshview_every_2_minutes" = "Iedere 2 minuten";
+"refreshview_every_5_minutes" = "Iedere 5 minuten";
+"refreshview_every_10_minutes" = "Iedere 10 minuten";
+"refreshview_every_20_minutes" = "Iedere 20 minuten";
+"refreshview_every_30_minutes" = "Iedere 30 minuten";
+"refreshview_once_per_hour" = "Ieder uur";
+
 /* Return receipts */
 "When I receive a request for a return receipt:" = "Bij aanvraag van een ontvangstbevestiging:";
 "Never send a return receipt" = "Ontvangstbevestiging nooit sturen";
@@ -245,6 +262,8 @@
 "Active" = "Actief";
 "Move Up" = "Omhoog";
 "Move Down" = "Omlaag";
+"Connection error" = "Verbindingsfout";
+"Service temporarily unavailable" = "Dienst tijdelijk niet beschikbaar";
 
 /* Filters - UIxFilterEditor */
 "Filter name:" = "Filternaam:";
@@ -262,6 +281,7 @@
 "To or Cc" = "aan of cc";
 "Size (Kb)" = "Grootte (Kb)";
 "Header" = "Header";
+"Body" = "Inhoud";
 "Flag the message with:" = "Markeer het bericht met:";
 "Discard the message" = "Het bericht verwijderen";
 "File the message in:" = "Verplaats het bericht naar:";
@@ -288,12 +308,8 @@
 "Flagged" = "Gemarkeerd";
 "Junk" = "Junk";
 "Not Junk" = "Geen junk";
-"Label 1" = "Label 1";
-"Label 2" = "Label 2";
-"Label 3" = "Label 3";
-"Label 4" = "Label 4";
-"Label 5" = "Label 5";
 
+/* Password policy */
 "The password was changed successfully." = "Het wachtwoord is met succes veranderd.";
 "Password must not be empty." = "Wachtwoord mag niet leeg zijn.";
 "The passwords do not match. Please try again." = "De wachtwoorden komen niet overeen. Probeer opnieuw.";

@@ -111,31 +111,30 @@
 "personalCalendar" = "التقويم الشخصي";
 "firstCalendar" = "أول تقويم ممكن";
 
-"reminderTime_0000" = "0 دقيقة";
-"reminderTime_0005" = "5 دقائق";
-"reminderTime_0010" = "10 دقائق";
-"reminderTime_0015" = "15 دقيقة";
-"reminderTime_0030" = "30 دقيقة";
-"reminderTime_0100" = "1 ساعة";
-"reminderTime_0200" = "2 ساعة";
-"reminderTime_0400" = "4 ساعات";
-"reminderTime_0800" = "8 ساعات";
-"reminderTime_1200" = "1/2 يوم";
-"reminderTime_2400" = "1 يوم";
-"reminderTime_4800" = "2 يوم";
+"reminder_5_MINUTES_BEFORE" = "5 دقائق";
+"reminder_10_MINUTES_BEFORE" = "10 دقائق";
+"reminder_15_MINUTES_BEFORE" = "15 دقيقة";
+"reminder_30_MINUTES_BEFORE" = "30 دقيقة";
+"reminder_1_HOUR_BEFORE" = "1 ساعة";
+"reminder_2_HOURS_BEFORE" = "2 ساعة";
+"reminder_5_HOURS_BEFORE"= "5 ساعات";
+"reminder_15_HOURS_BEFORE"= "15 ساعات";
+"reminder_1_DAY_BEFORE" = "1 يوم";
+"reminder_2_DAYS_BEFORE" = "2 يوم";
 
 /* Mailer */
+"Label" = "ملصق";
 "Show subscribed mailboxes only" = "عرض صناديق البريد المشترك بها فقط";
 "Sort messages by threads" = "رتب الرسائل حسب المواضيع";
 "Check for new mail:" = "تحقق من وجود بريد جديد:";
-"messagecheck_manually" = "يدوي";
-"messagecheck_every_minute" = "كل دقيقة";
-"messagecheck_every_2_minutes" = "كل 2 دقيقة";
-"messagecheck_every_5_minutes" = "كل 5 دقائق";
-"messagecheck_every_10_minutes" = "كل 10 دقائق";
-"messagecheck_every_20_minutes" = "كل 20 دقيقة";
-"messagecheck_every_30_minutes" = "كل 30 دقيقة";
-"messagecheck_once_per_hour" = "مرة كل ساعة";
+"refreshview_manually" = "يدوي";
+"refreshview_every_minute" = "كل دقيقة";
+"refreshview_every_2_minutes" = "كل 2 دقيقة";
+"refreshview_every_5_minutes" = "كل 5 دقائق";
+"refreshview_every_10_minutes" = "كل 10 دقائق";
+"refreshview_every_20_minutes" = "كل 20 دقيقة";
+"refreshview_every_30_minutes" = "كل 30 دقيقة";
+"refreshview_once_per_hour" = "مرة كل ساعة";
 
 "Forward messages:" = "أعد توجيه الرسائل:";
 "messageforward_inline" = "مضمنة";
@@ -200,7 +199,7 @@
 "Contacts" = "دفتر العناوين";
 "Mail" = "بريد";
 "Last" = "أخر إستخدام";
-"Default module :" = "وحدة نمطية افتراضية :";
+"Default Module :" = "وحدة نمطية افتراضية :";
 
 "Language :" = "اللغة:";
 "choose" = "اختيار ...";

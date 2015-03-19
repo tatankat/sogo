@@ -1,9 +1,6 @@
 /* SOGoUserManager.h - this file is part of SOGo
  *
- * Copyright (C) 2007-2013 Inverse inc.
- *
- * Author: Wolfgang Sourdeau <wsourdeau@inverse.ca>
- *         Francis Lachapelle <flachapelle@inverse.ca>
+ * Copyright (C) 2007-2015 Inverse inc.
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,10 +65,13 @@
 - (NSDictionary *) contactInfosForUserWithUIDorEmail: (NSString *) uid;
 - (NSDictionary *) contactInfosForUserWithUIDorEmail: (NSString *) uid
                                             inDomain: (NSString *) domain;
+- (NSDictionary *) fetchContactWithUID: (NSString *) uid
+                              inDomain: (NSString *) domain;
 - (NSArray *) fetchContactsMatching: (NSString *) match
                            inDomain: (NSString *) domain;
 - (NSArray *) fetchUsersMatching: (NSString *) filter
                         inDomain: (NSString *) domain;
+- (NSArray *) _compactAndCompleteContacts: (NSEnumerator *) contacts;
 
 - (NSString *) getCNForUID: (NSString *) uid;
 - (NSString *) getEmailForUID: (NSString *) uid;

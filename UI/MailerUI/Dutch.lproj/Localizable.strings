@@ -13,6 +13,7 @@
 "Print"       = "Afdrukken";
 "Stop"        = "Stoppen";
 "Write"       = "Opstellen";
+"Search"      = "Zoeken";
 
 "Send" = "Verzenden";
 "Contacts" = "Adresboek";
@@ -28,7 +29,7 @@
 "Select a recipient from an Address Book" = "Kies een ontvanger uit een adresboek";
 "Include an attachment" = "Voeg een bijlage toe";
 "Save this message" = "Sla dit bericht op";
-"Get new messages" = "Haal nieuwe berichten";
+"Get new messages" = "Haal nieuwe berichten op";
 "Create a new message" = "Maak een nieuw bericht";
 "Go to address book" = "Ga naar adresboek";
 "Reply to the message" = "Beantwoord het bericht";
@@ -41,6 +42,7 @@
 "Attachment" = "Bijlage";
 "Unread" = "Ongelezen";
 "Flagged" = "Gemarkeerd";
+"Search multiple mailboxes" = "Zoek in meerdere mailboxen";
 
 /* Main Frame  */
 
@@ -79,7 +81,7 @@
 "Remove this folder" = "Deze map verwijderen";
 "Erase mails from this folder" = "E-mails in in deze map verwijderen";
 "Expunge this folder" = "Deze map leegmaken";
-"Archive This Folder" = "Deze map archiveren";
+"Export This Folder" = "Deze map exporteren";
 "Modify the acl of this folder" = "Machtigingen voor deze map aanpassen";
 
 "Saved Messages.zip" = "Bewaarde Berichten.zip";
@@ -94,14 +96,16 @@
 "To"            = "Aan";
 "Cc"            = "Cc";
 "Bcc"           = "Bcc";
-"Reply-To"	= "Reply-To";
+"Reply-To"	    = "Reply-To";
 "Add address"   = "Adres toevoegen";
+"Body"          = "Inhoud";
 
-"Attachments:" = "Bijlage:";
 "Open" = "Openen";
 "Select All" = "Selecteer Alles";
 "Attach Web Page..." = "Voeg Webpagina toe...";
-"Attach File(s)..." = "Voeg Bestand(en) toe...";
+"file" = "bestand";
+"files" = "bestanden";
+"Save all" = "Alles opslaan";
 
 "to"            = "Aan";
 "cc"            = "Cc";
@@ -168,8 +172,6 @@
 "InboxFolderName"  = "Postvak IN";
 "DraftsFolderName" = "Concepten";
 "SieveFolderName"  = "Berichtregel";
-"OtherUsersFolderName"   = "Andere Gebruikers";
-"SharedFoldersName" = "Gedeelde Mappen";
 "Folders"          = "Mappen"; /* title line */
 
 /* MailMoveToPopUp */
@@ -227,11 +229,6 @@
 
 /* Label popup menu */
 "None" = "Geen label";
-"Important" = "Belangrijk";
-"Work" = "Werk";
-"Personal" = "Persoonlijk";
-"To Do" = "Te doen";
-"Later" = "Later";
 
 /* Mark popup menu */
 "As Read" = "Als gelezen";
@@ -242,6 +239,18 @@
 "As Junk" = "Als ongewenst";
 "As Not Junk" = "Als gewenst";
 "Run Junk Mail Controls" = "Ongewenste berichtenfilter starten";
+
+"Search messages in:" = "Zoek berichten in:";
+"Search" = "Zoeken";
+"Search subfolders" = "Zoek in submappen";
+"Match any of the following" = "Gelijk aan een van de volgende";
+"Match all of the following" = "Gelijk aan alle van de volgende";
+"contains" = "bevat";
+"does not contain" = "bevat niet";
+"No matches found" = "Geen overeenkomsten gevonden";
+"results found" = "resultaten gevonden";
+"result found" = "resultaat gevonden";
+"Please specify at least one filter" = "Specificeer tenminste een filter";
 
 /* Folder operations */
 "Name :" = "Naam:";
@@ -285,6 +294,9 @@
 "error_missingsubject" = "U heeft geen onderwerp opgegeven!";
 "error_missingrecipients" = "U heeft geen ontvanger opgegeven!";
 "Send Anyway" = "Toch verzenden";
+"Error while saving the draft:" = "Fout bij het opslaan van het concept:";
+"Error while uploading the file \"%{0}\":" = "Fout bij het uploaden van het bestand \"%{0}\":";
+"There is an active file upload. Closing the window will interrupt it." = "Een bestandsupload is actief. Sluiten van het venster zal hem onderbreken.";
 
 /* Message sending */
 "cannot send message: (smtp) all recipients discarded" = "Kan bericht niet sturen: alle ontvangers zijn ongeldig.";

@@ -13,6 +13,7 @@
 "Print"       = "Imprimer";
 "Stop"        = "Arrêter";
 "Write"       = "Écrire";
+"Search"      = "Recherche";
 
 "Send" = "Envoyer";
 "Contacts" = "Contacts";
@@ -41,6 +42,7 @@
 "Attachment" = "Documents joints";
 "Unread" = "Non lus";
 "Flagged" = "Marqués";
+"Search multiple mailboxes" = "Rechercher dans plusieurs boîtes";
 
 /* Main Frame  */
 
@@ -79,7 +81,7 @@
 "Remove this folder" = "Effacer ce dossier";
 "Erase mails from this folder" = "Effacer des messages de ce dossier";
 "Expunge this folder" = "Compacter ce dossier";
-"Archive This Folder" = "Archiver ce dossier";
+"Export This Folder" = "Exporter ce dossier";
 "Modify the acl of this folder" = "Administrer les droits sur ce dossier";
 
 "Saved Messages.zip" = "Messages sauvegardés.zip";
@@ -94,14 +96,16 @@
 "To"            = "Destinataire";
 "Cc"            = "Copie à";
 "Bcc"           = "Copie cachée à";
-"Reply-To"	= "Répondre à";
+"Reply-To"	    = "Répondre à";
 "Add address"   = "Ajouter Adresse";
+"Body"          = "Contenu";
 
-"Attachments:" = "Pièces jointes :";
 "Open" = "Ouvrir";
 "Select All" = "Tout sélectionner";
 "Attach Web Page..." = "Joindre une page Web...";
-"Attach File(s)..." = "Joindre un fichier...";
+"file" = "fichier";
+"files" = "fichiers";
+"Save all" = "Tout sauvegarder";
 
 "to"            = "Pour";
 "cc"            = "Copie à";
@@ -168,8 +172,6 @@
 "InboxFolderName"  = "Courrier entrant";
 "DraftsFolderName" = "Brouillons";
 "SieveFolderName"  = "Filtres";
-"OtherUsersFolderName"   = "Autres utilisateurs";
-"SharedFoldersName" = "Dossiers partagés";
 "Folders"          = "Dossiers"; /* title line */
 
 /* MailMoveToPopUp */
@@ -227,11 +229,6 @@
 
 /* Label popup menu */
 "None" = "Aucune";
-"Important" = "Important";
-"Work" = "Travail";
-"Personal" = "Personnel";
-"To Do" = "À faire";
-"Later" = "Peut attendre";
 
 /* Mark popup menu */
 "As Read" = "Comme lu";
@@ -242,6 +239,18 @@
 "As Junk" = "Comme indésirable";
 "As Not Junk" = "Comme acceptable";
 "Run Junk Mail Controls" = "Lancer le contrôle des indésirables";
+
+"Search messages in:" = "Rechercher dans :";
+"Search" = "Recherche";
+"Search subfolders" = "Rechercher dans les sous-dossiers";
+"Match any of the following" = "Répondant à un des critères suivants";
+"Match all of the following" = "Répondant à tous les critères suivants";
+"contains" = "contient";
+"does not contain" = "ne contient pas";
+"No matches found" = "Aucun résultat";
+"results found" = "messages trouvés";
+"result found" = "message trouvé";
+"Please specify at least one filter" = "Veuillez définir au moins un critère.";
 
 /* Folder operations */
 "Name :" = "Nom:";
@@ -282,9 +291,12 @@
 = "Les messages ne peuvent être déplacés dans la corbeille. Voulez-vous les supprimer immédiatement?";
 
 /* Message editing */
-"error_missingsubject" = "Le message n'as pas de sujet. Êtes-vous certain de vouloir l'envoyer?";
+"error_missingsubject" = "Le message n'a pas de sujet. Êtes-vous certain de vouloir l'envoyer?";
 "error_missingrecipients" = "Veuillez spécifier au moins un destinataire.";
 "Send Anyway" = "Envoyer sans sujet";
+"Error while saving the draft:" = "Une erreur est survenue lors de la sauvegarde du brouillon :";
+"Error while uploading the file \"%{0}\":" = "Une erreur est survenue lors du téléversement du fichier « %{0} » :";
+"There is an active file upload. Closing the window will interrupt it." = "Un transfert est actif. La fermeture de la fenêtre causera son interruption.";
 
 /* Message sending */
 "cannot send message: (smtp) all recipients discarded" = "Le message n'a pas pu être envoyé car aucune adresse n'est valide.";

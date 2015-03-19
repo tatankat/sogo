@@ -26,14 +26,10 @@ DIV#calendarSelectorButtons
 { padding-left: 6px; }
 
 DIV.colorBox
-{ display: inline;
-  font-weight: normal;
-  margin-right: 3px;
-  font-size: 80%;
-  width: 1em;
-  height: .75em;
-  -webkit-border-radius: 2px;
-  border-radius: 2px; }
+{ display: inline-block; }
+
+TD DIV.colorBox, TD DIV.colorBox:hover
+{ border-color: #fff; }
 
 UL#calendarList
 { cursor: default;
@@ -51,6 +47,9 @@ UL#calendarList LI
   white-space: nowrap;
   line-height: 2em;
   padding-left: 10px; }
+
+#calendarList .badge
+{ margin-left: 4px; }
 
 #tasksList .duelater,
 #tasksList .duetoday,
@@ -248,7 +247,7 @@ TABLE#tasksList
 { width: 100%; }
 
 TABLE#eventsList .colorBox
-{ margin-left: 2px; }
+{ margin-right: 4px; }
 
 #eventsList TD.headerTitle,
 #eventsList TD.headerDateTime
@@ -396,19 +395,20 @@ DIV#daysView
   left: 0px; }
 
 DIV#daysView
-{ top: 120px;
+{ top: 97px;
   bottom: 0px;
   border-top: 1px solid #ccc;
   overflow: auto;
   overflow-x: hidden;
-  right: 0px;}
-
-DIV#calendarHeader
-{ top: 50px;
-  border: 0px;
-  height: 100px;
   right: 0px; }
 
+DIV#calendarHeader
+{ top: 25px;
+  border: 0px;
+  height: 85px;
+  right: 0px; }
+
+DIV#calendarHeader DIV.calendarLabels,
 DIV#calendarHeader DIV.dayLabels,
 DIV#calendarHeader DIV.days
 { position: absolute;
@@ -418,8 +418,17 @@ DIV#calendarHeader DIV.days
   /* 'right' is computed from JS code when daysView is first drawn */
   overflow: hidden; }
 
+DIV#calendarHeader DIV.calendarLabels
+{ top: 11px;
+  height: 20px; 
+  border-left: 1px solid #ccc;
+  text-align: center;
+  font-size:150%;
+}
+.calendarsToDisplay
+{ border-top: 2px solid #fff; }
 DIV#calendarHeader DIV.dayLabels
-{ top: 0px;
+{ top: 32px;
   height: 35px; }
 
 DIV#calendarHeader DIV.dayLabels DIV.day
@@ -436,7 +445,11 @@ DIV#calendarHeader DIV.dayLabels
 DIV#calendarHeader DIV.days
 { cursor: pointer;
   bottom: 0px;
-  top: 35px; }
+  top: 67px;
+  z-index:0;
+  border-bottom:1px solid #ccc;
+  background:white;
+ }
 
 DIV#calendarHeader DIV.day,
 DIV#daysView DIV.day
@@ -468,9 +481,11 @@ DIV.eventView
 /* new draggable presentation */
 
 DIV#daysView DIV.hours
-{ position: absolute;
+{ display: inline-block;
+  position: relative;
+  float: left;
   top: 0px;
-  left: 0px;
+  left: 0;
   height: 960px;
   width: 50px; }
 
@@ -488,6 +503,9 @@ DIV#daysView DIV.hour
 
 DIV#daysView DIV.days
 { position: relative;
+  left: 0;
+  right: 0;
+  top: 0;
   margin-left: 50px; }
 
 DIV.multicolumnDayView DIV.lastDayUser
@@ -529,7 +547,8 @@ DIV.monthView DIV.dayHeader
   text-align: right;
   cursor: pointer;
   color: #666;
-  -moz-user-select: none; }
+  -moz-user-select: none; 
+  }
 
 DIV#monthDaysView DIV.selectedDay DIV.dayHeader
 { font-weight: bold; }
@@ -539,7 +558,8 @@ DIV.monthView DIV.days
   cursor: pointer;
   bottom: 0px;
   left: 0px;
-  right: 0px; }
+  right: 0px; 
+  }
 
 DIV.monthView DIV.day
 { position: absolute;
@@ -688,8 +708,7 @@ DIV.daysViewFor7Days DIV.day5
 
 DIV.monthView DIV.day6,
 DIV.daysViewFor7Days DIV.day6
-{ left: 85.7142%;
-  border-right: 1px solid #909090; }
+{ left: 85.7142%; }
 
 /* "left" and "width" for #daysView DIV.event are computed in JS code */
 #daysView DIV.event
@@ -1279,13 +1298,13 @@ DIV#daysView DIV.event.lasts96
 DIV.event > DIV.eventInside
 { position: absolute;
   overflow: hidden;
-  padding: 1px;
   top: 0px;
   bottom: 0px;
-  left: 2px;
-  right: 1px;
+  left: 0px;
+  right: 0px;
   -webkit-border-radius: 2px;
-  border-radius: 2px; }
+  border-radius: 2px;
+  cursor:move; }
 
 DIV.eventInside SPAN.location
 { font-size: smaller; }
@@ -1423,7 +1442,8 @@ DIV.event.draggable:hover DIV.rightDragGrip
 #daysView DIV.eventDragGhost > DIV.eventInside
 { padding: 0px;
   border-left: 1px solid #555;
-  border-right: 1px solid #555; }
+  border-right: 1px solid #555;
+}
 
 #daysView DIV.eventDragGhost.startGhost > DIV.eventInside
 { border-top: 1px solid #555; }
@@ -1471,7 +1491,7 @@ DIV.event.draggable:hover DIV.rightDragGrip
 #ghostEndHour
 { bottom: -14px; }
 
-DIV#nowLineDisplay
+DIV.nowLineDisplay
 { position: relative;
   width: 100%;
   height: 2px;
@@ -1486,3 +1506,61 @@ DIV#freeBusyReplicas DIV
 { display: inline-block; height: 2em; }
 TD.attendees A.button
 { float: left; left: 19px; margin-top: 5px; }
+
+DIV#calendarContent .alert-box {
+    color:#555;
+    border-radius:10px;
+    font-family:Tahoma,Geneva,Arial,sans-serif;font-size:11px;
+    padding:10px 10px 10px 36px;
+    margin:10px;
+}
+
+DIV#calendarContent .alert-box span {
+    font-weight:bold;
+    text-transform:uppercase;
+}
+
+.error {
+    background:#ffecec url('error.png') no-repeat 10px 50%;
+    border:1px solid #f5aca6;
+}
+.success {
+    background:#e9ffd9 url('success.png') no-repeat 10px 50%;
+    border:1px solid #a6ca8a;
+}
+.warning {
+    background:#fff8c4 url('warning.png') no-repeat 10px 50%;
+    border:1px solid #f2c779;
+}
+.notice {
+    background:#e3f7fc url('notice.png') no-repeat 10px 50%;
+    border:1px solid #8ed9f6;
+}
+
+DIV#DnDVisualEvents
+{ background-image: url(event7.png); }
+
+DIV#DnDVisualTasks
+{ background-image: url(task.png); }
+
+DIV#DnDVisualEvents, DIV#DnDVisualTasks
+{
+  background-repeat: no-repeat;
+  background-position: 4px 2px;
+  width: 5px;
+  height: 20px;
+  padding-left: 24px;
+  padding-top: 5px;
+}
+
+#DnDLeftPanelImage
+{
+  position:absolute;
+  z-index:1;
+  left:0;
+  top:0;
+}
+
+
+
+

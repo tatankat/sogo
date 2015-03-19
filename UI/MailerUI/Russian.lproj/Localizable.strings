@@ -13,6 +13,7 @@
 "Print"       = "Печать";
 "Stop"        = "Стоп";
 "Write"       = "Написать";
+"Search"      = "Поиск";
 
 "Send" = "Послать";
 "Contacts" = "Адресная книга";
@@ -41,6 +42,7 @@
 "Attachment" = "Вложения";
 "Unread" = "Непрочитанные";
 "Flagged" = "Помеченные флагом";
+"Search multiple mailboxes" = "Поиск в нескольких ящиках";
 
 /* Main Frame  */
 
@@ -79,7 +81,7 @@
 "Remove this folder" = "Удалять эту папку";
 "Erase mails from this folder" = "Удалять сообщения из этой папки";
 "Expunge this folder" = "Помечать письма как удаленные";
-"Archive This Folder" = "Archive This Folder";
+"Export This Folder" = "Экспортировать эту папку";
 "Modify the acl of this folder" = "Управлять правами доступа к этой папке";
 
 "Saved Messages.zip" = "Saved Messages.zip";
@@ -94,14 +96,16 @@
 "To"            = "Кому";
 "Cc"            = "Копия";
 "Bcc"           = "Скрытая копия";
-"Reply-To"	= "Обратный адрес";
+"Reply-To"	    = "Обратный адрес";
 "Add address"   = "Добавить адрес";
+"Body"          = "Тело письма";
 
-"Attachments:" = "Вложения:";
 "Open" = "Открыть";
 "Select All" = "Выбрать все";
 "Attach Web Page..." = "Прикрепить веб-страницы ...";
-"Attach File(s)..." = "Прикрепить файл (ы) ...";
+"file" = "файл";
+"files" = "файлы";
+"Save all" = "Сохранить все";
 
 "to"            = "Кому";
 "cc"            = "Копия";
@@ -168,8 +172,6 @@
 "InboxFolderName"  = "Входящие";
 "DraftsFolderName" = "Черновики";
 "SieveFolderName"  = "Папки";
-"OtherUsersFolderName"   = "Другие пользователи";
-"SharedFoldersName" = "Общие папки";
 "Folders"          = "Папки"; /* title line */
 
 /* MailMoveToPopUp */
@@ -227,11 +229,6 @@
 
 /* Label popup menu */
 "None" = "Удалить все метки";
-"Important" = "Важно";
-"Work" = "Работа";
-"Personal" = "Личное";
-"To Do" = "К исполнению";
-"Later" = "Позже";
 
 /* Mark popup menu */
 "As Read" = "как прочтанное";
@@ -242,6 +239,18 @@
 "As Junk" = "Спам";
 "As Not Junk" = "Не спам";
 "Run Junk Mail Controls" = "Запустить фильтр спама";
+
+"Search messages in:" = "Искать сообщения в:.";
+"Search" = "Поиск";
+"Search subfolders" = "Искать во вложенных папках";
+"Match any of the following" = "Отвечают любому из следующих";
+"Match all of the following" = "Отвечают всем из следующих";
+"contains" = "содержит";
+"does not contain" = "не содержит";
+"No matches found" = "Не найдено совпадений";
+"results found" = "результатов найдено";
+"result found" = "результат найден";
+"Please specify at least one filter" = "Укажите хотя бы один фильтр";
 
 /* Folder operations */
 "Name :" = "Имя :";
@@ -285,6 +294,9 @@
 "error_missingsubject" = "Тема сообщения не указана";
 "error_missingrecipients" = "Не указан адрес получателя";
 "Send Anyway" = "Всё равно послать";
+"Error while saving the draft:" = "Ошибка при сохранении черновика:";
+"Error while uploading the file \"%{0}\":" = "Ошибка при загрузке файла \"%{0}\":";
+"There is an active file upload. Closing the window will interrupt it." = "Сейчас выполняется загрузка файла. Закрытие окна прервет её.";
 
 /* Message sending */
 "cannot send message: (smtp) all recipients discarded" = "Не удается отправить сообщение: всем получателям, все получатели являются недействительными.";

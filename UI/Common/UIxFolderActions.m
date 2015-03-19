@@ -89,7 +89,10 @@
     }
   else
     {
-      [clientObject subscribeUserOrGroup: login reallyDo: reallyDo];
+      [clientObject subscribeUserOrGroup: login
+                                reallyDo: reallyDo
+                                response: response];
+
       if (isMailInvitation)
         {
           mailInvitationURL
@@ -215,7 +218,7 @@
   NSArray *ids;
 
   idsParam = [[context request] formValueForKey: @"ids"];
-  ids = [idsParam componentsSeparatedByString: @"/"];
+  ids = [idsParam componentsSeparatedByString: @","];
   if ([ids count])
     {
       clientObject = [self clientObject];
@@ -373,7 +376,8 @@
       max = [userIDs count];
       for (count = 0; count < max; count++)
         [folder subscribeUserOrGroup: [userIDs objectAtIndex: count]
-			    reallyDo: YES];
+			    reallyDo: YES
+                            response: nil];
       ex = nil;
     }
   else

@@ -16,6 +16,7 @@ Mailer_OBJC_FILES += \
 	SOGoMailAccounts.m		\
 	SOGoMailAccount.m		\
 	SOGoMailFolder.m		\
+	SOGoMailLabel.m			\
 	SOGoMailNamespace.m		\
 	SOGoMailObject.m		\
 	SOGoMailObject+Draft.m		\
@@ -91,9 +92,12 @@ Mailer_RESOURCE_FILES += \
 	SOGoMailWelshReply.wo
 
 
+Mailer_LANGUAGES = Arabic BrazilianPortuguese Catalan Czech Danish Dutch English Finnish French German Hungarian Icelandic Italian NorwegianBokmal NorwegianNynorsk Polish Russian Slovak SpanishSpain SpanishArgentina Swedish Ukrainian Welsh
+
+Mailer_LOCALIZED_RESOURCE_FILES = Localizable.strings
+
 ADDITIONAL_INCLUDE_DIRS += -I../../SOPE/
 ADDITIONAL_INCLUDE_DIRS += $(shell xml2-config --cflags)
-ADDITIONAL_LIB_DIRS += -L../../SOPE/GDLContentStore/obj/
 
 -include GNUmakefile.preamble
 include $(GNUSTEP_MAKEFILES)/wobundle.make

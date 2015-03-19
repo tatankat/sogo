@@ -1,6 +1,6 @@
 /* UIxAppointmentEditor.m - this file is part of SOGo
  *
- * Copyright (C) 2007-2013 Inverse inc.
+ * Copyright (C) 2007-2014 Inverse inc.
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSEnumerator.h>
 #import <Foundation/NSTimeZone.h>
+#import <Foundation/NSValue.h>
 
 #import <NGObjWeb/SoObject.h>
 #import <NGObjWeb/SoPermissions.h>
@@ -31,6 +32,8 @@
 #import <NGObjWeb/WOResponse.h>
 #import <NGObjWeb/NSException+HTTP.h>
 #import <NGExtensions/NSCalendarDate+misc.h>
+#import <NGExtensions/NGCalendarDateRange.h>
+#import <NGExtensions/NSString+misc.h>
 
 #import <NGCards/iCalAlarm.h>
 #import <NGCards/iCalCalendar.h>
@@ -48,8 +51,11 @@
 #import <SOGo/SOGoPermissions.h>
 #import <SOGo/SOGoUser.h>
 #import <SOGo/SOGoUserDefaults.h>
+#import <Appointments/iCalAlarm+SOGo.h>
+#import <Appointments/iCalCalendar+SOGo.h>
 #import <Appointments/iCalEntityObject+SOGo.h>
 #import <Appointments/iCalPerson+SOGo.h>
+#import <Appointments/iCalRepeatableEntityObject+SOGo.h>
 #import <Appointments/SOGoAppointmentFolder.h>
 #import <Appointments/SOGoAppointmentObject.h>
 #import <Appointments/SOGoAppointmentOccurence.h>
@@ -75,7 +81,7 @@
       isTransparent = NO;
       sendAppointmentNotifications = YES;
       componentCalendar = nil;
-
+      
       user = [[self context] activeUser];
       ASSIGN (dateFormatter, [user dateFormatterInContext: context]);
     }
@@ -106,6 +112,11 @@
   return event;
 }
 
+- (NSString *) rsvpURL
+{
+  return [NSString stringWithFormat: @"%@/rsvpAppointment",
+                   [[self clientObject] baseURL]];
+}
 - (NSString *) saveURL
 {
   return [NSString stringWithFormat: @"%@/saveAsAppointment",
@@ -385,6 +396,137 @@
     }
 }
 
+//
+//
+//
+- (id <WOActionResults>) rsvpAction
+{
+  iCalPerson *delegatedAttendee;
+  NSDictionary *message;
+  WOResponse *response;
+  WORequest *request;
+  iCalAlarm *anAlarm;
+  NSString *status;
+  
+  int replyList, reminderList;
+  
+  request = [context request];
+  message = [[request contentAsString] objectFromJSONString];
+
+  delegatedAttendee = nil;
+  anAlarm = nil;
+  status = nil;
+
+  replyList = [[message objectForKey: @"replyList"] intValue];
+
+  switch (replyList)
+    {
+    case 0:
+      status =  @"ACCEPTED";
+      break;
+
+    case 1:
+      status = @"DECLINED";
+      break;
+
+    case 2:
+      status = @"NEEDS-ACTION";
+      break;
+
+    case 3:
+      status = @"TENTATIVE";
+      break;
+
+    case 4:
+    default:
+      {
+        NSString *delegatedEmail, *delegatedUid;
+        SOGoUser *user;
+        
+        status = @"DELEGATED";
+        delegatedEmail = [[message objectForKey: @"delegatedTo"] stringByTrimmingSpaces];
+
+        if ([delegatedEmail length])
+          {
+            user = [context activeUser];
+            delegatedAttendee = [iCalPerson new];
+            [delegatedAttendee autorelease];
+            [delegatedAttendee setEmail: delegatedEmail];
+            delegatedUid = [delegatedAttendee uid];
+            if (delegatedUid)
+              {
+                SOGoUser *delegatedUser;
+                delegatedUser = [SOGoUser userWithLogin: delegatedUid];
+                [delegatedAttendee setCn: [delegatedUser cn]];
+              }
+            
+            [delegatedAttendee setRole: @"REQ-PARTICIPANT"];
+            [delegatedAttendee setRsvp: @"TRUE"];
+            [delegatedAttendee setParticipationStatus: iCalPersonPartStatNeedsAction];
+            [delegatedAttendee setDelegatedFrom:
+                     [NSString stringWithFormat: @"mailto:%@", [[user allEmails] objectAtIndex: 0]]];
+          }
+        else
+          return [NSException exceptionWithHTTPStatus: 400
+                                               reason: @"missing 'to' parameter"];
+      }
+      break;
+    }
+
+  // Extract the user alarm, if any
+  reminderList = [[message objectForKey: @"reminderList"] intValue];
+
+  if ([[message objectForKey: @"reminderList"] isEqualToString: @"WONoSelectionString"] || reminderList == 5 || reminderList == 10 || reminderList == 14)
+    {
+      // No selection, wipe alarm which will be done in changeParticipationStatus...
+    }
+  else if (reminderList == 15)
+    {
+      // Custom
+      anAlarm = [iCalAlarm alarmForEvent: [self event]
+                                   owner: [[self clientObject] ownerInContext: context]
+                                  action: [message objectForKey: @"reminderAction"]
+                                    unit: [message objectForKey: @"reminderUnit"]
+                                quantity: [message objectForKey: @"reminderQuantity"]
+                               reference: [message objectForKey: @"reminderReference"]
+                        reminderRelation: [message objectForKey: @"reminderRelation"]
+                          emailAttendees: [[message objectForKey: @"reminderEmailAttendees"] boolValue]
+                          emailOrganizer: [[message objectForKey: @"reminderEmailOrganizer"] boolValue]];
+    }
+  else
+    {
+      // Standard
+      NSString *aValue;
+      
+      aValue = [[UIxComponentEditor reminderValues] objectAtIndex: reminderList];
+
+      // Predefined alarm
+      if ([aValue length])
+        {
+          iCalTrigger *aTrigger;
+
+          anAlarm = [[[iCalAlarm alloc] init] autorelease];
+          aTrigger = [iCalTrigger elementWithTag: @"TRIGGER"];
+          [aTrigger setValueType: @"DURATION"];
+          [anAlarm setTrigger: aTrigger];
+          [anAlarm setAction: @"DISPLAY"];
+          [aTrigger setSingleValue: aValue forKey: @""];
+        }
+    }  
+
+  response = (WOResponse *)[[self clientObject] changeParticipationStatus: status
+                                                             withDelegate: delegatedAttendee
+                                                                    alarm: anAlarm];
+
+  if (!response)
+    response = [self responseWith204];
+  
+  return response;
+}
+
+//
+//
+//
 - (id <WOActionResults>) saveAction
 {
   SOGoAppointmentFolder *previousCalendar;
@@ -469,6 +611,7 @@
   SOGoUserDefaults *ud;
   SOGoCalendarComponent *co;
   NSString *created_by;
+  iCalAlarm *anAlarm;
 
   BOOL resetAlarm;
   unsigned int snoozeAlarm;
@@ -491,45 +634,54 @@
         componentCalendar = [componentCalendar container];
       [componentCalendar retain];
     }
+
+  created_by = [event createdBy];
   
-  if ([event hasAlarms] && ![event hasRecurrenceRules])
+  // resetAlarm=yes is set only when we are about to show the alarm popup in the Web
+  // interface of SOGo. See generic.js for details. snoozeAlarm=X is called when the
+  // user clicks on "Snooze for" X minutes, when the popup is being displayed.
+  // If either is set to yes, we must find the right alarm.
+  resetAlarm = [[[context request] formValueForKey: @"resetAlarm"] boolValue];
+  snoozeAlarm = [[[context request] formValueForKey: @"snoozeAlarm"] intValue];
+  
+  if (resetAlarm || snoozeAlarm)
     {
-      iCalAlarm *anAlarm;
-      resetAlarm = [[[context request] formValueForKey: @"resetAlarm"] boolValue];
-      snoozeAlarm = [[[context request] formValueForKey: @"snoozeAlarm"] intValue];
+      iCalEvent *master;
+
+      master = event;
+      [componentCalendar findEntityForClosestAlarm: &event
+                                          timezone: timeZone
+                                         startDate: &eventStartDate
+                                           endDate: &eventEndDate];
+      
+      anAlarm = [event firstDisplayOrAudioAlarm];
+
       if (resetAlarm)
         {
           iCalTrigger *aTrigger;
-          
-          anAlarm = [[event alarms] objectAtIndex: 0];
+
           aTrigger = [anAlarm trigger];
-          [aTrigger setValue: 0 ofAttribute: @"x-webstatus" to: @"triggered"];
-          
-          [co saveComponent: event];
+          [aTrigger setValue: 0 ofAttribute: @"x-webstatus" to: @"triggered"];          
+          [co saveComponent: master];
         }
       else if (snoozeAlarm)
         {
-          anAlarm = [[event alarms] objectAtIndex: 0];
-          if ([[anAlarm action] caseInsensitiveCompare: @"DISPLAY"] == NSOrderedSame)
-            [co snoozeAlarm: snoozeAlarm];
+          [co snoozeAlarm: snoozeAlarm];
         }
     }
 
-  created_by = [event createdBy];
-
   data = [NSDictionary dictionaryWithObjectsAndKeys:
-                       [componentCalendar displayName], @"calendar",
+                       [[componentCalendar displayName] stringByEscapingHTMLString], @"calendar",
                        [event tag], @"component",
                        [dateFormatter formattedDate: eventStartDate], @"startDate",
                        [dateFormatter formattedTime: eventStartDate], @"startTime",
                        [dateFormatter formattedDate: eventEndDate], @"endDate",
                        [dateFormatter formattedTime: eventEndDate], @"endTime",
-                     //([event hasRecurrenceRules] ? @"1": @"0"), @"isRecurring",
                        ([event isAllDay] ? @"1": @"0"), @"isAllDay",
-                       [event summary], @"summary",
-                       [event location], @"location",
-		       created_by, @"created_by",
-                       [event comment], @"description",
+                       [[event summary] stringByEscapingHTMLString], @"summary",
+                       [[event location] stringByEscapingHTMLString], @"location",
+		       [created_by stringByEscapingHTMLString], @"created_by",
+                       [[[event comment] stringByEscapingHTMLString] stringByDetectingURLs], @"description",
                        nil];
   
   [result appendContentString: [data jsonRepresentation]];
@@ -545,7 +697,7 @@
   actionName = [[request requestHandlerPath] lastPathComponent];
 
   return ([[self clientObject] conformsToProtocol: @protocol (SOGoComponentOccurence)]
-          && [actionName hasPrefix: @"save"]);
+          && ([actionName hasPrefix: @"save"] || [actionName hasPrefix: @"rsvp"]));
 }
 
 - (void) takeValuesFromRequest: (WORequest *) _rq
@@ -620,83 +772,6 @@
   else if (sendAppointmentNotifications && o)
     [event removeChild: o];
   
-}
-
-- (id) _statusChangeAction: (NSString *) newStatus
-{
-  [[self clientObject] changeParticipationStatus: newStatus
-                                    withDelegate: nil];
-
-  return [self responseWith204];
-}
-
-- (id) acceptAction
-{
-  return [self _statusChangeAction: @"ACCEPTED"];
-}
-
-- (id) declineAction
-{
-  return [self _statusChangeAction: @"DECLINED"];
-}
-
-- (id) needsActionAction
-{
-  return [self _statusChangeAction: @"NEEDS-ACTION"];
-}
-
-- (id) tentativeAction
-{
-  return [self _statusChangeAction: @"TENTATIVE"];
-}
-
-- (id) delegateAction
-{
-//  BOOL receiveUpdates;
-  NSString *delegatedEmail, *delegatedUid;
-  iCalPerson *delegatedAttendee;
-  SOGoUser *user;
-  WORequest *request;
-  WOResponse *response;
-
-  response = nil;
-  request = [context request];
-  delegatedEmail = [request formValueForKey: @"to"];
-  if ([delegatedEmail length])
-    {
-      user = [context activeUser];
-      delegatedAttendee = [iCalPerson new];
-      [delegatedAttendee autorelease];
-      [delegatedAttendee setEmail: delegatedEmail];
-      delegatedUid = [delegatedAttendee uid];
-      if (delegatedUid)
-        {
-          SOGoUser *delegatedUser;
-          delegatedUser = [SOGoUser userWithLogin: delegatedUid];
-          [delegatedAttendee setCn: [delegatedUser cn]];
-        }
-      
-      [delegatedAttendee setRole: @"REQ-PARTICIPANT"];
-      [delegatedAttendee setRsvp: @"TRUE"];
-      [delegatedAttendee setParticipationStatus: iCalPersonPartStatNeedsAction];
-      [delegatedAttendee setDelegatedFrom:
-               [NSString stringWithFormat: @"mailto:%@", [[user allEmails] objectAtIndex: 0]]];
-      
-//      receiveUpdates = [[request formValueForKey: @"receiveUpdates"] boolValue];
-//      if (receiveUpdates)
-//      [delegatedAttendee setRole: @"NON-PARTICIPANT"];
-
-      response = (WOResponse*)[[self clientObject] changeParticipationStatus: @"DELEGATED"
-                                                   withDelegate: delegatedAttendee];
-    }
-  else
-    response = [NSException exceptionWithHTTPStatus: 400
-                                             reason: @"missing 'to' parameter"];
-
-  if (!response)
-    response = [self responseWith204];
-
-  return response;
 }
 
 @end

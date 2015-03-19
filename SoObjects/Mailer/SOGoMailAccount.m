@@ -1,6 +1,6 @@
 /*
   Copyright (C) 2004-2005 SKYRIX Software AG
-  Copyright (C) 2007-2011 Inverse inc.
+  Copyright (C) 2007-2014 Inverse inc.
 
   This file is part of SOGo.
 
@@ -21,10 +21,14 @@
 */
 
 #import <Foundation/NSArray.h>
+#import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSURL.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSValue.h>
+
+#import <DOM/DOMElement.h>
+#import <DOM/DOMProtocols.h>
 
 #import <NGObjWeb/NSException+HTTP.h>
 #import <NGObjWeb/SoHTTPAuthenticator.h>
@@ -36,6 +40,7 @@
 #import <NGImap4/NGImap4Connection.h>
 #import <NGImap4/NGImap4Client.h>
 #import <NGImap4/NGImap4Context.h>
+#import <NGImap4/NSString+Imap4.h>
 
 #import <SOGo/NSArray+Utilities.h>
 #import <SOGo/NSString+Utilities.h>
@@ -44,6 +49,7 @@
 #import <SOGo/SOGoUser.h>
 #import <SOGo/SOGoUserDefaults.h>
 #import <SOGo/SOGoUserSettings.h>
+#import <SOGo/SOGoUserManager.h>
 #import <SOGo/SOGoSieveManager.h>
 
 #import "SOGoDraftsFolder.h"
@@ -55,6 +61,10 @@
 #import "SOGoUser+Mailer.h"
 
 #import "SOGoMailAccount.h"
+#import <Foundation/NSProcessInfo.h>
+
+
+#define XMLNS_INVERSEDAV @"urn:inverse:params:xml:ns:inverse-dav"
 
 @implementation SOGoMailAccount
 
@@ -300,14 +310,17 @@ static NSString *inboxFolderName = @"INBOX";
 
 - (BOOL) updateFilters
 {
+  return [self updateFiltersWithUsername: nil andPassword: nil];
+}
+
+- (BOOL) updateFiltersWithUsername: (NSString *) theUsername
+                       andPassword: (NSString *) thePassword
+{
   SOGoSieveManager *manager;
 
   manager = [SOGoSieveManager sieveManagerForUser: [context activeUser]];
 
-  return [manager updateFiltersForLogin: [[self imap4URL] user]
-                               authname: [[self imap4URL] user]
-                               password: [self imap4PasswordRenewed: NO]
-                                account: self];
+  return [manager updateFiltersForAccount: self  withUsername: theUsername  andPassword: thePassword];
 }
 
 
@@ -334,6 +347,9 @@ static NSString *inboxFolderName = @"INBOX";
   return folders;
 }
 
+//
+//
+//
 - (NSArray *) allFolderPaths
 {
   NSMutableArray *folderPaths, *namespaces;
@@ -377,8 +393,128 @@ static NSString *inboxFolderName = @"INBOX";
   return folderPaths;
 }
 
-/* IMAP4 */
+//
+//
+//
+- (NSString *) _folderType: (NSString *) folderName
+{
+  NSString *folderType;
 
+  if ([folderName isEqualToString: [NSString stringWithFormat: @"/%@", inboxFolderName]])
+    folderType = @"inbox";
+  else if ([folderName isEqualToString: [NSString stringWithFormat: @"/%@", [self draftsFolderNameInContext: context]]])
+    folderType = @"draft";
+  else if ([folderName isEqualToString: [NSString stringWithFormat: @"/%@", [self sentFolderNameInContext: context]]])
+    folderType = @"sent";
+  else if ([folderName isEqualToString: [NSString stringWithFormat: @"/%@", [self trashFolderNameInContext: context]]])
+    folderType = @"trash";
+  else
+    folderType = @"folder";
+
+  return folderType;
+}
+
+- (NSString *) _parentForFolder: (NSString *) folderName
+                    foldersList: (NSArray *) theFolders
+{
+  NSArray *pathComponents;
+  NSString *s;
+  int i;
+
+  pathComponents = [folderName pathComponents];
+  s = [[[pathComponents subarrayWithRange: NSMakeRange(0,[pathComponents count]-1)] componentsJoinedByString: @"/"] substringFromIndex: 1];
+
+  for (i = 0; i < [theFolders count]; i++)
+    {
+      if ([s isEqualToString: [theFolders objectAtIndex: i]])
+        return s;
+    }
+  
+  return nil;
+}
+
+//
+//
+//
+- (NSArray *) allFoldersMetadata
+{
+  NSString *currentFolder, *currentDecodedFolder, *currentDisplayName, *currentFolderType, *login, *fullName, *parent;
+  NSMutableArray *pathComponents, *folders;
+  SOGoUserManager *userManager;
+  NSEnumerator *rawFolders;
+  NSDictionary *folderData;
+  NSAutoreleasePool *pool;
+  NSArray *allFolderPaths;
+
+  allFolderPaths = [self allFolderPaths];
+  rawFolders = [allFolderPaths objectEnumerator];
+
+  folders = [NSMutableArray array];
+  while ((currentFolder = [rawFolders nextObject]))
+    {
+      // Using a local pool to avoid using too many file descriptors. This could
+      // happen with tons of mailboxes under "Other Users" as LDAP connections
+      // are never reused and "autoreleased" at the end. This loop would consume
+      // lots of LDAP connections during its execution.
+      pool = [[NSAutoreleasePool alloc] init];
+
+      currentDecodedFolder = [currentFolder stringByDecodingImap4FolderName];
+      currentFolderType = [self _folderType: currentFolder];
+
+      // We translate the "Other Users" and "Shared Folders" namespaces.
+      // While we're at it, we also translate the user's mailbox names
+      // to the full name of the person.
+      if (otherUsersFolderName && [currentDecodedFolder hasPrefix: [NSString stringWithFormat: @"/%@", otherUsersFolderName]])
+        {
+          // We have a string like /Other Users/lmarcotte/... under Cyrus, but we could
+          // also have something like /shared under Dovecot. So we swap the username only
+          // if we have one, of course.
+          pathComponents = [NSMutableArray arrayWithArray: [currentDecodedFolder pathComponents]];
+
+          if ([pathComponents count] > 2) 
+            {
+              login = [pathComponents objectAtIndex: 2];
+              userManager = [SOGoUserManager sharedUserManager];
+              fullName = [userManager getCNForUID: login];
+              [pathComponents removeObjectsInRange: NSMakeRange(0,3)];
+
+              currentDisplayName = [NSString stringWithFormat: @"/%@/%@/%@", 
+                                     [self labelForKey: @"OtherUsersFolderName"],
+                                     (fullName != nil ? fullName : login),
+                                     [pathComponents componentsJoinedByString: @"/"]];
+
+            }
+          else
+            {
+              currentDisplayName = [NSString stringWithFormat: @"/%@%@",
+                                     [self labelForKey: @"OtherUsersFolderName"],
+                                      [currentDecodedFolder substringFromIndex:
+                                        [otherUsersFolderName length]+1]];
+            }
+        }
+      else if (sharedFoldersName && [currentDecodedFolder hasPrefix: [NSString stringWithFormat: @"/%@", sharedFoldersName]])
+        currentDisplayName = [NSString stringWithFormat: @"/%@%@", [self labelForKey: @"SharedFoldersName"],
+                           [currentDecodedFolder substringFromIndex: [sharedFoldersName length]+1]];
+      else
+        currentDisplayName = currentDecodedFolder;
+
+      parent = [self _parentForFolder: currentFolder  foldersList: allFolderPaths];
+      
+      folderData = [NSDictionary dictionaryWithObjectsAndKeys:
+                                   currentFolder, @"path",
+                                 currentFolderType, @"type",
+                                 currentDisplayName, @"displayName",
+                                 parent, @"parent",
+                                 nil];
+      [folders addObject: folderData];
+      [pool release];
+    }
+
+  return folders;
+}
+
+
+/* IMAP4 */
 - (NSDictionary *) _mailAccount
 {
   NSDictionary *mailAccount;
@@ -525,6 +661,76 @@ static NSString *inboxFolderName = @"INBOX";
 
   return password;
 }
+
+
+- (NSDictionary *) imapFolderGUIDs
+{
+  NSDictionary *result, *nresult, *namespaceDict;
+  NSMutableDictionary *folders;
+  NGImap4Client *client;
+  NSArray *folderList;
+  NSEnumerator *e;
+  NSString *guid;
+  id object;
+  
+  BOOL hasAnnotatemore;
+
+  folderList = [self allFolderPaths];
+
+  folders = [NSMutableDictionary dictionary];
+
+  client = [[self imap4Connection] client];
+  namespaceDict = [client namespace];
+  hasAnnotatemore = [self hasCapability: @"annotatemore"];
+
+  if (hasAnnotatemore)
+    result = [client annotation: @"*"  entryName: @"/comment" attributeName: @"value.priv"];
+  else
+    result = [client lstatus: @"*" flags: [NSArray arrayWithObjects: @"x-guid", nil]];
+  
+  e = [folderList objectEnumerator];
+  
+  while ((object = [e nextObject]))
+    {
+      if (hasAnnotatemore)
+        guid = [[[[result objectForKey: @"FolderList"] objectForKey: [object substringFromIndex: 1]] objectForKey: @"/comment"] objectForKey: @"value.priv"];
+      else
+        guid = [[[result objectForKey: @"status"] objectForKey: [object substringFromIndex: 1]] objectForKey: @"x-guid"];
+      
+      if (!guid)
+        {
+          // Don't generate a GUID for "Other users" and "Shared" namespace folders - user foldername instead
+          if ([[object substringFromIndex: 1] isEqualToString: [[[[namespaceDict objectForKey: @"other users"] lastObject] objectForKey: @"prefix"] substringFromIndex: 1]] ||
+              [[object substringFromIndex: 1] isEqualToString: [[[[namespaceDict objectForKey: @"shared"] lastObject] objectForKey: @"prefix"] substringFromIndex: 1]])
+            {
+              [folders setObject: [NSString stringWithFormat: @"folder%@", [object substringFromIndex: 1]] forKey: [NSString stringWithFormat: @"folder%@", [object substringFromIndex: 1]]];
+              continue;
+            }
+          
+          // if folder doesn't exists - ignore it
+          nresult = [client status: [object substringFromIndex: 1]
+                             flags: [NSArray arrayWithObject: @"UIDVALIDITY"]];
+          if (![[nresult valueForKey: @"result"] boolValue])
+            continue;
+          
+          if (hasAnnotatemore)
+            {
+              guid = [[NSProcessInfo processInfo] globallyUniqueString];
+              nresult = [client annotation: [object substringFromIndex: 1] entryName: @"/comment" attributeName: @"value.priv" attributeValue: guid];
+            }
+          
+          // setannotation failed or annotatemore is not available
+          if (![[nresult objectForKey: @"result"] boolValue] || !hasAnnotatemore)
+            guid = [NSString stringWithFormat: @"%@", [object substringFromIndex: 1]];
+        }
+      
+      [folders setObject: [NSString stringWithFormat: @"folder%@", guid] forKey: [NSString stringWithFormat: @"folder%@", [object substringFromIndex: 1]]];
+      
+    }
+  
+  return folders;
+}
+
 
 /* name lookup */
 

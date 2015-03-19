@@ -1,8 +1,6 @@
 /* SOGoDomainDefaults.m - this file is part of SOGo
  *
- * Copyright (C) 2009-2012 Inverse inc.
- *
- * Author: Wolfgang Sourdeau <wsourdeau@inverse.ca>
+ * Copyright (C) 2009-2015 Inverse inc.
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -176,6 +174,11 @@
   return [self stringArrayForKey: @"SOGoContactsDefaultRoles"];
 }
 
+- (NSString *) subscriptionFolderFormat
+{
+  return [self stringForKey: @"SOGoSubscriptionFolderFormat"];
+}
+
 //
 // In v2.0.4, SOGoForceIMAPLoginWithEmail was renamed to SOGoForceExternalLoginWithEmail
 // but we keep backward compatbility for now with previous versions.
@@ -196,6 +199,15 @@
 - (BOOL) forwardEnabled
 {
   return [self boolForKey: @"SOGoForwardEnabled"];
+}
+
+- (int) forwardConstraints
+{
+  unsigned int v;
+
+  v =  [self integerForKey: @"SOGoForwardConstraints"];
+  
+  return (v > 2 ? 0 : v);
 }
 
 - (BOOL) vacationEnabled
@@ -220,9 +232,9 @@
   return [mailingMechanism lowercaseString];
 }
 
-- (NSArray *) mailPollingIntervals
+- (NSArray *) refreshViewIntervals
 {
-  return [self arrayForKey: @"SOGoMailPollingIntervals"];
+  return [self arrayForKey: @"SOGoRefreshViewIntervals"];
 }
 
 - (NSString *) smtpServer

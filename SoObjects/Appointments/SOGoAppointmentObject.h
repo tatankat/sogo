@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2007-2011 Inverse inc.
+  Copyright (C) 2007-2014 Inverse inc.
 
   This file is part of SOGo
 
@@ -30,6 +30,7 @@
 
 @class WORequest;
 
+@class iCalAlarm;
 @class iCalEvent;
 @class iCalCalendar;
 
@@ -38,9 +39,12 @@
 @interface SOGoAppointmentObject : SOGoCalendarComponent
 
 - (NSException *) changeParticipationStatus: (NSString *) status
-                               withDelegate: (iCalPerson *) delegate;
+                               withDelegate: (iCalPerson *) delegate
+                                      alarm: (iCalAlarm *) alarm;
+
 - (NSException *) changeParticipationStatus: (NSString *) status
                                withDelegate: (iCalPerson *) delegate
+                                      alarm: (iCalAlarm *) alarm
 			    forRecurrenceId: (NSCalendarDate *) _recurrenceId;
 
 //

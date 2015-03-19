@@ -1,6 +1,5 @@
 /*
-  Copyright (C) 2007-2012 Inverse inc.
-  Copyright (C) 2000-2004 SKYRIX Software AG
+  Copyright (C) 2007-2014 Inverse inc.
 
   This file is part of SOGo
 
@@ -63,17 +62,14 @@
   SOGoUserManager *um;
   NSString *domain;
   NSDictionary *contactInfos;
-  NSArray *contacts;
 
   um = [SOGoUserManager sharedUserManager];
   contactInfos = [um contactInfosForUserWithUIDorEmail: uid];
   if (contactInfos == nil)
     {
+      // Search among global addressbooks
       domain = [[context activeUser] domain];
-      [um fetchContactsMatching: uid inDomain: domain];
-      contacts = [um fetchContactsMatching: uid inDomain: domain];
-      if ([contacts count] == 1)
-          contactInfos = [contacts lastObject];
+      contactInfos = [um fetchContactWithUID: uid inDomain: domain];
     }
 
   /* iCal.app compatibility:
@@ -280,7 +276,6 @@
   if ([uid length])
     {
       SOGoUserManager *um;
-      NSArray *contacts;
       NSString *domain, *email;
       NSDictionary *contact;
       MSExchangeFreeBusy *exchangeFreeBusy;
@@ -288,10 +283,9 @@
 
       um = [SOGoUserManager sharedUserManager];
       domain = [[context activeUser] domain];
-      contacts = [um fetchContactsMatching: uid inDomain: domain];
-      if ([contacts count] == 1)
+      contact = [um fetchContactWithUID: uid inDomain: domain];
+      if (contact)
         {
-          contact = [contacts lastObject];
           email = [contact valueForKey: @"c_email"];
           source = [contact objectForKey: @"source"];
           if ([email length]
@@ -339,7 +333,7 @@
   for (count = 0; count < max; count++)
     {
       calFolder = [folders objectAtIndex: count];
-      if (![calFolder isSubscription] && [calFolder includeInFreeBusy])
+      if ([calFolder includeInFreeBusy])
 	[infos addObjectsFromArray: [calFolder fetchFreeBusyInfosFrom: startDate
                                                                    to: endDate]];
     }
@@ -387,8 +381,7 @@
                                             ([currentStartDate compare: startDate] == NSOrderedAscending)? startDate : currentStartDate, @"startDate",
                                           currentEndDate, @"endDate", nil]];
 
-          if (!firstRange
-              && currentEndDate != endDate
+          if (currentEndDate != endDate
               && ([currentEndDate dayOfWeek] == 6 || [currentEndDate dayOfWeek] == 0))
             {
               // Fill weekend days

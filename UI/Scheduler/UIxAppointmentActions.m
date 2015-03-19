@@ -1,6 +1,6 @@
 /* UIxAppointmentActions.m - this file is part of SOGo
  *
- * Copyright (C) 2011 Inverse inc.
+ * Copyright (C) 2011-2014 Inverse inc.
  *
  * Author: Wolfgang Sourdeau <wsourdeau@inverse.ca>
  *
@@ -21,7 +21,11 @@
  */
 
 #import <Foundation/NSCalendarDate.h>
+#import <Foundation/NSDictionary.h>
 #import <Foundation/NSString.h>
+#import <Foundation/NSArray.h>
+
+#import <NGExtensions/NSObject+Values.h>
 
 #import <NGObjWeb/NSException+HTTP.h>
 #import <NGObjWeb/SoPermissions.h>
@@ -33,11 +37,13 @@
 #import <NGCards/iCalEvent.h>
 
 #import <SOGo/NSCalendarDate+SOGo.h>
+#import <SOGo/NSDictionary+Utilities.h>
 #import <SOGo/SOGoUser.h>
 #import <SOGo/SOGoUserDefaults.h>
 #import <Appointments/iCalEvent+SOGo.h>
 #import <Appointments/SOGoAppointmentObject.h>
 #import <Appointments/SOGoAppointmentFolder.h>
+#import <Appointments/SOGoAppointmentFolders.h>
 
 #import <Common/WODirectAction+SOGo.h>
 
@@ -50,18 +56,24 @@
   WOResponse *response;
   WORequest *rq;
   SOGoAppointmentObject *co;
+  SoSecurityManager *sm;
   iCalEvent *event;
   NSCalendarDate *start, *newStart, *end, *newEnd;
   NSTimeInterval newDuration;
   SOGoUserDefaults *ud;
-  NSString *daysDelta, *startDelta, *durationDelta;
+  NSString *daysDelta, *startDelta, *durationDelta, *destionationCalendar;
   NSTimeZone *tz;
+  NSException *ex;
+  SOGoAppointmentFolder *targetCalendar, *sourceCalendar;
+  SOGoAppointmentFolders *folders;
 
   rq = [context request];
 
   daysDelta = [rq formValueForKey: @"days"];
   startDelta = [rq formValueForKey: @"start"];
   durationDelta = [rq formValueForKey: @"duration"];
+  destionationCalendar = [rq formValueForKey: @"destination"];
+
   if ([daysDelta length] > 0
       || [startDelta length] > 0 || [durationDelta length] > 0)
     {
@@ -102,19 +114,47 @@
         }
 
       if ([event hasRecurrenceRules])
-	[event updateRecurrenceRulesUntilDate: end];
+        [event updateRecurrenceRulesUntilDate: end];
 
       [event setLastModified: [NSCalendarDate calendarDate]];
-      [co saveComponent: event];
+      ex = [co saveComponent: event];
+      // This condition will be executed only if the event is moved from a calendar to another. If destionationCalendar == 0; there is no calendar change
+      if (![destionationCalendar isEqualToString:@"0"])
+        {
+          folders = [[self->context activeUser] calendarsFolderInContext: self->context];
+          sourceCalendar = [co container];
+          targetCalendar = [folders lookupName:[destionationCalendar stringValue] inContext: self->context  acquire: 0];
+          // The event was moved to a different calendar.
+          sm = [SoSecurityManager sharedSecurityManager];
+          if (![sm validatePermission: SoPerm_DeleteObjects
+                             onObject: sourceCalendar
+                            inContext: context])
+          {
+            if (![sm validatePermission: SoPerm_AddDocumentsImagesAndFiles
+                               onObject: targetCalendar
+                              inContext: context])
+              ex = [co moveToFolder: targetCalendar];
+          }
 
-      response = [self responseWith204];
+    
+        }
+      if (ex)
+        {
+          NSDictionary *jsonResponse;
+          jsonResponse = [NSDictionary dictionaryWithObjectsAndKeys:
+                                       [ex reason], @"message",
+                                       nil];
+          response = [self responseWithStatus: 403
+                                    andString: [jsonResponse jsonRepresentation]];
+        }
+      else
+        response = [self responseWith204];
     }
   else
     response
       = (WOResponse *) [NSException exceptionWithHTTPStatus: 400
                                                      reason: @"missing 'days', 'start' and/or 'duration' parameters"];
 
-    
   return response;
 }
 

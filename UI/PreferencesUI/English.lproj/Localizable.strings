@@ -12,6 +12,7 @@
 "Forward" = "Forward";
 "Password" = "Password";
 "Categories" = "Categories";
+"Appointments invitations" = "Appointments invitations";
 "Name" = "Name";
 "Color" = "Color";
 "Add" = "Add";
@@ -28,6 +29,7 @@
 "Days between responses :" = "Days between responses:";
 "Do not send responses to mailing lists" = "Do not send responses to mailing lists";
 "Disable auto reply on" = "Disable auto reply on";
+"Always send vacation message response" = "Always send vacation message response";
 "Please specify your message and your email addresses for which you want to enable auto reply."
 = "Please specify your message and your email addresses for which you want to enable auto reply.";
 "Your vacation message must not end with a single dot on a line." = "Your vacation message must not end with a single dot on a line.";
@@ -39,6 +41,9 @@
 "Keep a copy" = "Keep a copy";
 "Please specify an address to which you want to forward your messages."
 = "Please specify an address to which you want to forward your messages.";
+"You are not allowed to forward your messages to an external email address." = "You are not allowed to forward your messages to an external email address.";
+"You are not allowed to forward your messages to an internal email address." = "You are not allowed to forward your messages to an internal email address.";
+
 
 /* d & t */
 "Current Time Zone :" = "Current Time Zone:";
@@ -97,13 +102,16 @@
 "Show time as busy outside working hours" = "Show time as busy outside working hours";
 "First week of year :" = "First week of year:";
 "Enable reminders for Calendar items" = "Enable reminders for Calendar items";
-"Play a sound when a reminder comes due"
-= "Play a sound when a reminder comes due";
+"Play a sound when a reminder comes due" = "Play a sound when a reminder comes due";
 "Default reminder :" = "Default reminder:";
 
 "firstWeekOfYear_January1" = "Starts on january 1";
 "firstWeekOfYear_First4DayWeek" = "First 4-day week";
 "firstWeekOfYear_FirstFullWeek" = "First full week";
+
+"Prevent from being invited to appointments" = "Prevent from being invited to appointments";
+"White list for appointment invitations:" = "White list for appointment invitations:";
+"Contacts Names" = "Contacts Names";
 
 /* Default Calendar */
 "Default calendar :" = "Default calendar:";
@@ -111,31 +119,26 @@
 "personalCalendar" = "Personal calendar";
 "firstCalendar" = "First enabled calendar";
 
-"reminderTime_0000" = "0 minutes";
-"reminderTime_0005" = "5 minutes";
-"reminderTime_0010" = "10 minutes";
-"reminderTime_0015" = "15 minutes";
-"reminderTime_0030" = "30 minutes";
-"reminderTime_0100" = "1 hour";
-"reminderTime_0200" = "2 hours";
-"reminderTime_0400" = "4 hours";
-"reminderTime_0800" = "8 hours";
-"reminderTime_1200" = "1/2 day";
-"reminderTime_2400" = "1 day";
-"reminderTime_4800" = "2 days";
+"reminder_NONE" = "No reminder";
+"reminder_5_MINUTES_BEFORE" = "5 minutes before";
+"reminder_10_MINUTES_BEFORE" = "10 minutes before";
+"reminder_15_MINUTES_BEFORE" = "15 minutes before";
+"reminder_30_MINUTES_BEFORE" = "30 minutes before";
+"reminder_45_MINUTES_BEFORE" = "45 minutes before";
+"reminder_1_HOUR_BEFORE" = "1 hour before";
+"reminder_2_HOURS_BEFORE" = "2 hours before";
+"reminder_5_HOURS_BEFORE" = "5 hours before";
+"reminder_15_HOURS_BEFORE" = "15 hours before";
+"reminder_1_DAY_BEFORE" = "1 day before";
+"reminder_2_DAYS_BEFORE" = "2 days before";
+"reminder_1_WEEK_BEFORE" = "1 week before";
 
 /* Mailer */
+"Labels" = "Labels";
+"Label" = "Label";
 "Show subscribed mailboxes only" = "Show subscribed mailboxes only";
 "Sort messages by threads" = "Sort messages by threads";
-"Check for new mail:" = "Check for new mail:";
-"messagecheck_manually" = "Manually";
-"messagecheck_every_minute" = "Every minute";
-"messagecheck_every_2_minutes" = "Every 2 minutes";
-"messagecheck_every_5_minutes" = "Every 5 minutes";
-"messagecheck_every_10_minutes" = "Every 10 minutes";
-"messagecheck_every_20_minutes" = "Every 20 minutes";
-"messagecheck_every_30_minutes" = "Every 30 minutes";
-"messagecheck_once_per_hour" = "Once per hour";
+"When sending mail, add unknown recipients to my" = "When sending mail, add unknown recipients to my";
 
 "Forward messages:" = "Forward messages:";
 "messageforward_inline" = "Inline";
@@ -153,6 +156,13 @@
 "Display remote inline images" = "Display remote inline images";
 "displayremoteinlineimages_never" = "Never";
 "displayremoteinlineimages_always" = "Always";
+
+"Auto save every" = "Auto save every";
+"minutes" = "minutes";
+
+/* Contact */
+"Personal Address Book" = "Personal Address Book";
+"Collected Address Book" = "Collected Address Book";
 
 /* IMAP Accounts */
 "New Mail Account" = "New Mail Account";
@@ -200,7 +210,8 @@
 "Contacts" = "Address Book";
 "Mail" = "Mail";
 "Last" = "Last used";
-"Default module :" = "Default module:";
+"Default Module :" = "Default Module:";
+"SOGo Version :" = "SOGo Version:";
 
 "Language :" = "Language:";
 "choose" = "Choose ...";
@@ -228,6 +239,16 @@
 "Ukrainian" = "Українська";
 "Welsh" = "Cymraeg";
 
+"Refresh View :" = "Refresh View:";
+"refreshview_manually" = "Manually";
+"refreshview_every_minute" = "Every minute";
+"refreshview_every_2_minutes" = "Every 2 minutes";
+"refreshview_every_5_minutes" = "Every 5 minutes";
+"refreshview_every_10_minutes" = "Every 10 minutes";
+"refreshview_every_20_minutes" = "Every 20 minutes";
+"refreshview_every_30_minutes" = "Every 30 minutes";
+"refreshview_once_per_hour" = "Once per hour";
+
 /* Return receipts */
 "When I receive a request for a return receipt:" = "When I receive a request for a return receipt:";
 "Never send a return receipt" = "Never send a return receipt";
@@ -245,6 +266,8 @@
 "Active" = "Active";
 "Move Up" = "Move Up";
 "Move Down" = "Move Down";
+"Connection error" = "Connection error";
+"Service temporarily unavailable" = "Service temporarily unavailable";
 
 /* Filters - UIxFilterEditor */
 "Filter name:" = "Filter name:";
@@ -262,6 +285,7 @@
 "To or Cc" = "To or Cc";
 "Size (Kb)" = "Size (Kb)";
 "Header" = "Header";
+"Body" = "Body";
 "Flag the message with:" = "Flag the message with:";
 "Discard the message" = "Discard the message";
 "File the message in:" = "File the message in:";
@@ -288,12 +312,8 @@
 "Flagged" = "Flagged";
 "Junk" = "Junk";
 "Not Junk" = "Not Junk";
-"Label 1" = "Label 1";
-"Label 2" = "Label 2";
-"Label 3" = "Label 3";
-"Label 4" = "Label 4";
-"Label 5" = "Label 5";
 
+/* Password policy */
 "The password was changed successfully." = "The password was changed successfully.";
 "Password must not be empty." = "Password must not be empty.";
 "The passwords do not match. Please try again." = "The passwords do not match. Please try again.";

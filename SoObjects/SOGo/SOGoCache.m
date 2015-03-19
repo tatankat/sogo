@@ -1,9 +1,6 @@
 /* SOGoCache.m - this file is part of SOGo
  *
- * Copyright (C) 2008-2013 Inverse inc.
- *
- * Author: Wolfgang Sourdeau <wsourdeau@inverse.ca>
- *         Ludovic Marcotte <lmarcotte@inverse.ca>
+ * Copyright (C) 2008-2014 Inverse inc.
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,14 +31,16 @@
  * <uid>+defaults           value = NSDictionary instance > user's defaults
  * <uid>+settings           value = NSDictionary instance > user's settings
  * <uid>+attributes         value = NSMutableDictionary instance > user's LDAP attributes
+ * <uid>+failedlogins       value = NSDictionary instance holding the failed count and the date of the first failed authentication
+ * <uid>+messagesubmissions value = NSDictionary instance holding the number of messages sent, and number of recipients
+ * <uid>+dn                 value = NSString instance > cached user's DN
  * <object path>+acl        value = NSDictionary instance > ACLs on an object at specified path
  * <groupname>+<domain>     value = NSString instance (array components separated by ",") or group member logins for a specific group in domain
  * cas-id:< >               value = 
  * cas-ticket:< >           value =
  * cas-pgtiou:< >           value =
  * session:< >              value =
- * <uid>+failedlogins       value = NSDictionary instance holding the failed count and the date of the first failed authentication
- * <uid>+messagesubmissions value = NSDictionary instance holding the number of messages sent, and number of recipients
+ * saml2-login:< >          value =
  */
 
 
@@ -114,6 +113,8 @@ static memcached_st *handle = NULL;
           handle = memcached_create(NULL);
           if (handle)
             {
+              memcached_behavior_set(handle, MEMCACHED_BEHAVIOR_BINARY_PROTOCOL, 1);
+ 
               sd = [SOGoSystemDefaults sharedSystemDefaults];
 	      
 	      // We define the default value for cleaning up cached users'
@@ -433,7 +434,9 @@ static memcached_st *handle = NULL;
 }
 
 //
-//
+// Try to hit the local cache. If it misses, it'll
+// then try memcached. If it hits memcached, it'll
+// populate the local cache.
 //
 - (NSString *) _valuesOfType: (NSString *) theType
                       forKey: (NSString *) theKey
@@ -602,6 +605,21 @@ static memcached_st *handle = NULL;
   return d;
 }
 
+//
+// DN caching
+//
+- (NSString *) distinguishedNameForLogin: (NSString *) theLogin
+{
+  return [self _valuesOfType: @"dn" forKey: theLogin];
+}
+
+- (void) setDistinguishedName: (NSString *) theDN
+                     forLogin: (NSString *) theLogin
+{
+  [self _cacheValues: theDN 
+              ofType: @"dn"
+              forKey: theLogin];
+}
 
 //
 // CAS session support
@@ -655,11 +673,13 @@ static memcached_st *handle = NULL;
     {
       key = [NSString stringWithFormat: @"cas-ticket:%@", ticket];
       [self removeValueForKey: key];
-      [self debugWithFormat: @"Removed session: %@", session];
+      [self debugWithFormat: @"Removed CAS session: %@", session];
     }
 }
 
+//
 // SAML2 support
+//
 - (NSDictionary *) saml2LoginDumpsForIdentifier: (NSString *) identifier
 {
   NSString *key, *jsonString;
@@ -678,6 +698,16 @@ static memcached_st *handle = NULL;
   key = [NSString stringWithFormat: @"saml2-login:%@", identifier];
 
   [self setValue: [dump jsonRepresentation] forKey: key];
+}
+
+- (void) removeSAML2LoginDumpsForIdentifier: (NSString *) identifier
+{
+  NSString *key;
+
+  key = [NSString stringWithFormat: @"saml2-login:%@", identifier];
+
+  [self removeValueForKey: key];
+  [self debugWithFormat: @"Removed SAML2 session for identifier: %@", identifier];
 }
 
 //

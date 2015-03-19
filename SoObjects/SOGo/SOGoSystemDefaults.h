@@ -1,9 +1,6 @@
 /* SOGoSystemDefaults.h - this file is part of SOGo
  *
- * Copyright (C) 2009-2013 Inverse inc.
- *
- * Author: Wolfgang Sourdeau <wsourdeau@inverse.ca>
- *         Francis Lachapelle <flachapelle@inverse.ca>
+ * Copyright (C) 2009-2014 Inverse inc.
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,6 +42,7 @@
 - (BOOL) trustProxyAuthentication;
 - (NSString *) encryptionKey;
 - (BOOL) useRelativeURLs;
+- (NSString *) sieveFolderEncoding;
 
 - (BOOL) isWebAccessEnabled;
 - (BOOL) isCalendarDAVAccessEnabled;
@@ -82,7 +80,9 @@
 - (NSString *) SAML2IdpMetadataLocation;
 - (NSString *) SAML2IdpPublicKeyLocation;
 - (NSString *) SAML2IdpCertificateLocation;
+- (NSString *) SAML2LoginAttribute;
 - (BOOL) SAML2LogoutEnabled;
+- (NSString *) SAML2LogoutURL;
 
 - (BOOL) enablePublicAccess;
 
@@ -94,6 +94,12 @@
 - (int) maximumRecipientCount;
 - (int) maximumSubmissionInterval;
 - (int) messageSubmissionBlockInterval;
+
+- (int) maximumPingInterval;
+- (int) maximumSyncInterval;
+- (int) internalSyncInterval;
+- (int) maximumSyncWindowSize;
+- (int) maximumSyncResponseSize;
 
 @end
 

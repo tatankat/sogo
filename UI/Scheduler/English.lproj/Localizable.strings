@@ -5,6 +5,7 @@
 "Create a new event" = "Create a new event";
 "Create a new task" = "Create a new task";
 "Edit this event or task" = "Edit this event or task";
+"Print the current calendar view" = "Print the current calendar view";
 "Delete this event or task" = "Delete this event or task";
 "Go to today" = "Go to today";
 "Switch to day view" = "Switch to day view";
@@ -117,7 +118,7 @@
 "Name of the Calendar" = "Name of the Calendar";
 
 "new" = "New";
-"printview" = "Print View";
+"Print view" = "Print view";
 "edit" = "Edit";
 "delete" = "Delete";
 "proposal" = "Proposal";
@@ -145,6 +146,20 @@
 "Hide already accepted and rejected appointments" = "Hide already accepted and rejected appointments";
 "Show already accepted and rejected appointments" = "Show already accepted and rejected appointments";
 
+/* Print view */
+
+"LIST" = "List";
+"Print Settings" = "Print Settings";
+"Title:" = "Title:";
+"Layout:" = "Layout:";
+"What to Print" = "What to Print";
+"Options" = "Options";
+"Tasks with no due date" = "Tasks with no due date";
+"Display working hours only" = "Display working hours only";
+"Completed tasks" = "Completed Tasks";
+"Display events and tasks colors" = "Display events and tasks colors";
+"Borders" = "Borders";
+"Backgrounds" = "Backgrounds";
 
 /* Appointments */
 
@@ -225,8 +240,13 @@
 "view_future" = "All Future Events";
 "view_selectedday" = "Selected Day";
 
+"view_not_started" = "Not started tasks";
+"view_overdue" = "Overdue tasks";
+"view_incomplete" = "Incomplete tasks";
+
 "View:" = "View:";
-"Title or Description" = "Title or Description";
+"Title, category or location" = "Title, category or location";
+"Entire content" = "Entire content";
 
 "Search" = "Search";
 "Search attendees" = "Search attendees";
@@ -416,8 +436,9 @@ validate_endbeforestart    = "The end date that you entered occurs before the st
 "Workweek days only" = "Workweek days only";
 "Tasks in View" = "Tasks in View";
 
-"eventDeleteConfirmation" = "The following event(s) will be erased: \n%{0}\nWould you like to continue?";
-"taskDeleteConfirmation" = "The following task(s) will be erased: \n%{0}\nWould you like to continue?";
+"eventDeleteConfirmation" = "The following event(s) will be erased:";
+"taskDeleteConfirmation" = "The following task(s) will be erased:";
+"Would you like to continue?" = "Would you like to continue?";
 
 "You cannot remove nor unsubscribe from your personal calendar."
 = "You cannot remove nor unsubscribe from your personal calendar.";
@@ -505,7 +526,7 @@ vtodo_class2 = "(Confidential task)";
 
 "Links to this Calendar" = "Links to this Calendar";
 "Authenticated User Access" = "Authenticated User Access";
-"CalDAV URL" = "CalDAV URL";
+"CalDAV URL" = "CalDAV URL: ";
 "WebDAV ICS URL" = "WebDAV ICS URL";
 "WebDAV XML URL" = "WebDAV XML URL";
 
@@ -525,6 +546,8 @@ vtodo_class2 = "(Confidential task)";
 "tagWasRemoved" = "If you remove this calendar from synchronization, you'll need to reload the data on your mobile device.\nContinue?";
 "DestinationCalendarError" = "The source and destination calendars are the same. Please try to copy to a different calendar.";
 "EventCopyError" = "The copy failed. Please try to copy to a difference calendar.";
+"Please select at least one calendar" = "Please select at least one calendar";
+
 
 "Open Task..." = "Open Task...";
 "Mark Completed" = "Mark Completed";

@@ -5,6 +5,7 @@
 "Create a new event" = "Neuen Termin erstellen";
 "Create a new task" = "Neue Aufgabe erstellen";
 "Edit this event or task" = "Gewählten Termin oder Aufgabe bearbeiten";
+"Print the current calendar view" = "Die aktuelle Kalenderansicht drucken";
 "Delete this event or task" = "Gewählten Termin oder Aufgabe löschen ";
 "Go to today" = "Zu Heute springen";
 "Switch to day view" = "Zur Tagesansicht wechseln";
@@ -117,7 +118,7 @@
 "Name of the Calendar" = "Name des Kalenders";
 
 "new" = "Neu";
-"printview" = "Druckversion";
+"Print view" = "Ansicht drucken";
 "edit" = "Bearbeiten";
 "delete" = "Löschen";
 "proposal" = "Vorschlag";
@@ -145,6 +146,20 @@
 "Hide already accepted and rejected appointments" = "Abgelehnte und angenommene Termine ausblenden";
 "Show already accepted and rejected appointments" = "Abgelehnte und angenommene Termine anzeigen";
 
+/* Print view */
+
+"LIST" = "Liste";
+"Print Settings" = "Druckeinstellungen";
+"Title:" = "Titel:";
+"Layout:" = "Formatierung:";
+"What to Print" = "Was soll gedruckt werden";
+"Options" = "Optionen";
+"Tasks with no due date" = "Aufgaben ohne Fälligkeitsdatum";
+"Display working hours only" = "Nur Arbeitszeit anzeigen";
+"Completed tasks" = "Abgeschlossene Aufgaben";
+"Display events and tasks colors" = "Zeige die Termin- und Aufgabenfarben an";
+"Borders" = "Rahmen";
+"Backgrounds" = "Hintergründe";
 
 /* Appointments */
 
@@ -163,7 +178,7 @@
 "% complete" = "% fertig";
 "Location:" = "Ort: ";
 "Priority:" = "Priorität: ";
-"Privacy" = "Datenschutz";
+"Privacy" = "Vertraulichkeit";
 "Cycle" = "Wiederholen";
 "Cycle End" = "Wiederholungsende";
 "Categories" = "Kategorien";
@@ -177,7 +192,7 @@
 "Category:" = "Kategorie:";
 "Repeat:" = "Wiederholen:";
 "Reminder:" = "Erinnerung:";
-"General:" = "Generell:";
+"General:" = "Allgemein:";
 "Reply:" = "Antwort:";
 "Created by:" = "Erstellt von:";
 
@@ -210,7 +225,7 @@
 
 /* Appointments (error messages) */
 
-"Conflicts found!" = "Ein order mehrere Konflikte wurden gefunden!";
+"Conflicts found!" = "Es wurden Konflikte gefunden!";
 "Invalid iCal data!" = "Ungültige iCal-Daten!";
 "Could not create iCal data!" = "iCal-Daten konnten nicht erstellt werden!";
 
@@ -225,8 +240,13 @@
 "view_future" = "Alle zukünftigen Termine";
 "view_selectedday" = "Momentan gewählter Tag";
 
+"view_not_started" = "Nicht begonnene Aufgaben";
+"view_overdue" = "Überfällige Aufgaben";
+"view_incomplete" = "Unvollständige Aufgaben";
+
 "View:" = "Anzeigen:";
-"Title or Description" = "Titel oder Beschreibung";
+"Title, category or location" = "Titel, Kategorie oder Ort";
+"Entire content" = "Gesamter Inhalt";
 
 "Search" = "Suchen";
 "Search attendees" = "Teilnehmer suchen";
@@ -269,8 +289,8 @@
 "PRIVATE_vtodo" = "Private Aufgabe";
 
 /* status type */
-"status_" = "Nicht angegeben";
-"status_NOT-SPECIFIED" = "Nicht angegeben";
+"status_" = "Nicht festgelegt";
+"status_NOT-SPECIFIED" = "Nicht definiert";
 "status_TENTATIVE" = "Vorläufig";
 "status_CONFIRMED" = "Bestätigt";
 "status_CANCELLED" = "Abgebrochen";
@@ -292,7 +312,7 @@
 "cycle_end_never" = "Unendlich oft wiederholen";
 "cycle_end_until" = "Wiederholen bis :";
 
-"Recurrence pattern" = "Wiederholungsschema";
+"Recurrence pattern" = "Wiederholungsmuster";
 "Range of recurrence" = "Bereich der Wiederholung";
 
 "Repeat" = "Wiederhole";
@@ -416,8 +436,9 @@ validate_endbeforestart    = "Ihr Ende ist vor dem Beginndatum.";
 "Workweek days only" = "nur Arbeitstage";
 "Tasks in View" = "Aufgaben anzeigen";
 
-"eventDeleteConfirmation" = "Diese Termine werden gelöscht: \n%{0}\nFortfahren?";
-"taskDeleteConfirmation" = "Diese Aufgaben werden gelöscht: \n%{0}\nFortfahren?";
+"eventDeleteConfirmation" = "Die folgenden Termine werden gelöscht:";
+"taskDeleteConfirmation" = "Die folgenden Aufgaben werden gelöscht:";
+"Would you like to continue?" = "Möchten Sie fortfahren?";
 
 "You cannot remove nor unsubscribe from your personal calendar."
 = "Der persönliche Kalender kann weder gelöscht noch abbestellt werden.";
@@ -504,8 +525,8 @@ vtodo_class2 = "(Vertrauliche Aufgabe)";
 "When I modify my calendar, send a mail to:" = "Wenn ich meinen Kalender verändere, schicke eine E-Mail an: ";
 
 "Links to this Calendar" = "Links zu diesem Kalender";
-"Authenticated User Access" = "Zugang für angemeldete Benutzer";
-"CalDAV URL" = "CalDAV-URL";
+"Authenticated User Access" = "Zugang für authentifizierte Benutzer";
+"CalDAV URL" = "CalDAV-URL:";
 "WebDAV ICS URL" = "WebDAV-ICS-URL";
 "WebDAV XML URL" = "WebDAV-XML-URL";
 
@@ -525,13 +546,15 @@ vtodo_class2 = "(Vertrauliche Aufgabe)";
 "tagWasRemoved" = "Wenn der Kalender aus der Synchronisation entfernt wird, müssen die Daten erneut auf das Mobilgerät geladen werden.\nFortfahren?";
 "DestinationCalendarError" = "Quell- und Zielkalender sind identisch. Bitte kopieren Sie in einen anderen Kalender.";
 "EventCopyError" = "Kopieren fehlgeschlagen. Bitte kopieren Sie in einen anderen Kalender.";
+"Please select at least one calendar" = "Bitte mindestens einen Kalender auswählen";
+
 
 "Open Task..." = "Aufgabe öffnen...";
 "Mark Completed" = "Als abgeschlossen markieren";
 "Delete Task" = "Aufgabe löschen";
 "Delete Event" = "Termin löschen";
 "Copy event to my calendar" = "Kopiere diesen Termin in meinen Kalender";
-"View Raw Source" = "Roher Quelltext anzeigen";
+"View Raw Source" = "Rohen Quelltext anzeigen";
 
 "Subscribe to a web calendar..." = "Einen Webkalender abonnieren...";
 "URL of the Calendar" = "URL des Kalenders";

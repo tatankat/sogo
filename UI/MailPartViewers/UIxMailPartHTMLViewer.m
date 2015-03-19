@@ -1,10 +1,6 @@
 /* UIxMailPartHTMLViewer.m - this file is part of SOGo
  *
- * Copyright (C) 2007-2012 Inverse inc.
- *
- * Author: Wolfgang Sourdeau <wsourdeau@inverse.ca>
- *         Ludovic Marcotte <lmarcotte@inverse.ca>
- *         Francis Lachapelle <flachapelle@inverse.ca>
+ * Copyright (C) 2007-2013 Inverse inc.
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -90,6 +86,9 @@ _xmlCharsetForCharset (NSString *charset)
     { @"windows-1251", XML_CHAR_ENCODING_ERROR}, // unsupported, will trigger windows-1251 -> utf8 conversion
     { @"windows-1257", XML_CHAR_ENCODING_ERROR}, // unsupported, will trigger windows-1257 -> utf8 conversion
     { @"gb2312", XML_CHAR_ENCODING_ERROR},       // unsupported, will trigger gb2312 -> utf8 conversion
+    { @"gbk", XML_CHAR_ENCODING_ERROR},          // unsupported, will trigger gb2312 -> utf8 conversion
+    { @"gb18030", XML_CHAR_ENCODING_ERROR},      // unsupported, will trigger gb2312 -> utf8 conversion
+    { @"big5", XML_CHAR_ENCODING_ERROR},         // unsupported, will trigger gb2312 -> utf8 conversion
     { @"euc-jp", XML_CHAR_ENCODING_EUC_JP}};
   unsigned count;
   xmlCharEncoding encoding;
@@ -147,34 +146,34 @@ static NSData* _sanitizeContent(NSData *theData)
   const char *bytes;
   char *buf;
   int i, j, len;
-  BOOL found_delimiter;
+  BOOL found_delimiter, in_meta;
 
   d = [NSMutableData dataWithData: theData];
   bytes = [d bytes];
   len = [d length];
   i = 0;
 
+  in_meta = NO;
+
   while (i < len)
     {
-      // We check if we see </head> in which case, we don't do any kind
-      // of substitution there after.
-      if (i < len-6)
+      // We check if we see <meta ...> in which case, we substitute de charset= stuff.
+      if (i < len-5)
 	{
 	  if ((*bytes == '<') &&
-	      (*(bytes+1) == '/') &&
-	      (*(bytes+2) == 'h' || *(bytes+2) == 'H') &&
-	      (*(bytes+3) == 'e' || *(bytes+3) == 'E') &&
-	      (*(bytes+4) == 'a' || *(bytes+4) == 'A') &&
-	      (*(bytes+5) == 'd' || *(bytes+5) == 'D') &&
-	      (*(bytes+6) == '>'))
-            break;
+	      (*(bytes+1) == 'm' || *(bytes+2) == 'M') &&
+	      (*(bytes+2) == 'e' || *(bytes+3) == 'E') &&
+	      (*(bytes+3) == 't' || *(bytes+4) == 'T') &&
+	      (*(bytes+4) == 'a' || *(bytes+5) == 'A') &&
+	      (*(bytes+5) == ' '))
+            in_meta = YES;
 	}
       
       // We search for something like :
       // 
       // <meta http-equiv="Content-Type" content="text/html; charset=Windows-1252">
       //
-      if (i < len-9)
+      if (in_meta && i < len-9)
 	{
 	  if ((*bytes == 'c' || *bytes == 'C') &&
 	      (*(bytes+1) == 'h' || *(bytes+1) == 'H') &&
@@ -196,16 +195,18 @@ static NSData* _sanitizeContent(NSData *theData)
 		  // We haven't found anything, let's return the data untouched
 		  if ((i+j) >= len)
                     {
-                      found_delimiter = NO;
+                      in_meta = found_delimiter = NO;
                       break;
                     }
 		}
 
               if (found_delimiter)
-                [d replaceBytesInRange: NSMakeRange(i, j)
-                             withBytes: NULL
-                                length: 0];
-	      break;
+                {
+                  [d replaceBytesInRange: NSMakeRange(i, j)
+                               withBytes: NULL
+                                  length: 0];
+                  in_meta = found_delimiter = NO;
+                }
 	    }
 	}
 
@@ -271,7 +272,7 @@ static NSData* _sanitizeContent(NSData *theData)
                       if ([tag caseInsensitiveCompare: found_tag] == NSOrderedSame)
                         {
                           // Remove the leading slash
-                          NSLog(@"Found void tag with invalid leading slash: </%@>", found_tag);
+                          //NSLog(@"Found void tag with invalid leading slash: </%@>", found_tag);
                           i--;
                           [d replaceBytesInRange: NSMakeRange(i, 1)
                                        withBytes: NULL
@@ -420,9 +421,9 @@ static NSData* _sanitizeContent(NSData *theData)
 }
 
 - (void) _appendStyle: (unichar *) _chars
-               length: (int) _len
+               length: (NSUInteger) _len
 {
-  unsigned int count, length;
+  NSUInteger count, length;
   unichar *start, *currentChar;
 
   start = _chars;
@@ -454,6 +455,10 @@ static NSData* _sanitizeContent(NSData *theData)
             {
               if (*currentChar == '{')
                 inCSSDeclaration = YES;
+              if (*currentChar == '}')
+                // CSS syntax error: ending declaration character while not in a CSS declaration.
+                // Ignore eveything from last CSS declaration.
+                start = currentChar + 1;
               else if (*currentChar == ',')
                 hasEmbeddedCSS = NO;
               else if (!hasEmbeddedCSS)
@@ -546,7 +551,8 @@ static NSData* _sanitizeContent(NSData *theData)
                   else
                     skipAttribute = YES;
                 }
-              else if (([name isEqualToString: @"data"]
+              else if ([name isEqualToString: @"background"] ||
+                       ([name isEqualToString: @"data"]
                         || [name isEqualToString: @"classid"])
                        && [lowerName isEqualToString: @"object"])
                 {
@@ -561,6 +567,13 @@ static NSData* _sanitizeContent(NSData *theData)
                                    == NSNotFound
                                    && ![value hasPrefix: @"mailto:"]
                                    && ![value hasPrefix: @"#"]);
+                }
+              // Avoid: <div style="background:url('http://www.sogo.nu/fileadmin/sogo/logos/sogo.bts.png' ); width: 200px; height: 200px;" title="ssss">
+              else if ([name isEqualToString: @"style"])
+                {
+                  value = [_attributes valueAtIndex: count];
+                  if ([value rangeOfString: @"url" options: NSCaseInsensitiveSearch].location != NSNotFound)
+                    name = [NSString stringWithFormat: @"unsafe-%@", name];
                 }
 	      else if (
 		       // Mouse Events
@@ -597,12 +610,13 @@ static NSData* _sanitizeContent(NSData *theData)
 		}
               else
                 value = [_attributes valueAtIndex: count];
+              
               if (!skipAttribute)
                 [resultPart appendFormat: @" %@=\"%@\"",
                             name, [value stringByReplacingString: @"\""
                                                       withString: @"\\\""]];
             }
-
+          
           if ([VoidTags containsObject: lowerName])
             [resultPart appendString: @"/"];
           [resultPart appendString: @">"];
@@ -680,7 +694,7 @@ static NSData* _sanitizeContent(NSData *theData)
 }
 
 - (void) characters: (unichar *) _chars
-             length: (int) _len
+             length: (NSUInteger) _len
 {
   showWhoWeAre();
   if (!ignoredContent)
@@ -689,22 +703,22 @@ static NSData* _sanitizeContent(NSData *theData)
         [self _appendStyle: _chars length: _len];
       else if (inBody)
         {
-	  NSString *tmpString;
+	  NSString *s;
   
-          tmpString = [NSString stringWithCharacters: _chars length: _len];
+          s = [NSString stringWithCharacters: _chars length: _len];
 
 	  // HACK: This is to avoid appending the useless junk in the <html> tag
 	  //       that Outlook adds. It seems to confuse the XML parser for
 	  //       forwarded messages as we get this in the _body_ of the email
 	  //       while we really aren't in it!
-	  if (![tmpString hasPrefix: @" xmlns:v=\"urn:schemas-microsoft-com:vml\""])
-	    [result appendString: [tmpString stringByEscapingHTMLString]];
+	  if (![s hasPrefix: @" xmlns:v=\"urn:schemas-microsoft-com:vml\""])
+	    [result appendString: [s stringByEscapingHTMLString]];
         }
     }
 }
 
 - (void) ignorableWhitespace: (unichar *) _chars
-                      length: (int) _len
+                      length: (NSUInteger) _len
 {
   showWhoWeAre();
 }
@@ -727,7 +741,7 @@ static NSData* _sanitizeContent(NSData *theData)
 
 /* SaxLexicalHandler */
 - (void) comment: (unichar *) _chars
-          length: (int) _len
+          length: (NSUInteger) _len
 {
   showWhoWeAre();
   if (inStyle)
@@ -843,7 +857,7 @@ static NSData* _sanitizeContent(NSData *theData)
              createXMLReaderForMimeType: @"text/html"];
 
   handler = [_UIxHTMLMailContentHandler new];
-  [handler setAttachmentIds: [mail fetchAttachmentIds]];
+  [handler setAttachmentIds: [mail fetchFileAttachmentIds]];
 
   // We check if we got an unsupported charset. If so
   // we convert everything to UTF-16{LE,BE} so it passes
@@ -951,7 +965,7 @@ static NSData* _sanitizeContent(NSData *theData)
     encoding = @"us-ascii";
 
   handler = [_UIxHTMLMailContentHandler new];
-  [handler setAttachmentIds: [mail fetchAttachmentIds]];
+  [handler setAttachmentIds: [mail fetchFileAttachmentIds]];
 
   // We check if we got an unsupported charset. If so
   // we convert everything to UTF-16{LE,BE} so it passes

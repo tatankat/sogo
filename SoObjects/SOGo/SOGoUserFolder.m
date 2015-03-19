@@ -153,13 +153,13 @@
 
 - (NSArray *) _subFoldersFromFolder: (SOGoParentFolder *) parentFolder
 {
-  NSMutableArray *folders;
-  NSEnumerator *subfolders;
-  SOGoFolder *currentFolder;
   NSString *folderName, *folderOwner;
-  Class subfolderClass;
   NSMutableDictionary *currentDictionary;
   SoSecurityManager *securityManager;
+  SOGoFolder *currentFolder;
+  NSEnumerator *subfolders;
+  NSMutableArray *folders;
+  Class subfolderClass;
 
   folders = [NSMutableArray array];
 
@@ -190,6 +190,7 @@
                                 forKey: @"owner"];
 	  [currentDictionary setObject: [currentFolder folderType]
                                 forKey: @"type"];
+
 	  [folders addObject: currentDictionary];
 	}
     }

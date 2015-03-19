@@ -5,6 +5,7 @@
 "Create a new event" = "Crear un nuevo evento";
 "Create a new task" = "Crear una nueva tarea";
 "Edit this event or task" = "Modificar éste evento o tarea";
+"Print the current calendar view" = "Imprimir la vista actual del calendario";
 "Delete this event or task" = "Borrar éste evento o tarea";
 "Go to today" = "Ir a hoy";
 "Switch to day view" = "Cambiar a vista diaria";
@@ -117,7 +118,7 @@
 "Name of the Calendar" = "Nombre del calendario";
 
 "new" = "Nuevo";
-"printview" = "Vista previa";
+"Print view" = "Vista previa";
 "edit" = "Modificar";
 "delete" = "Borrar";
 "proposal" = "Propuesta";
@@ -145,6 +146,20 @@
 "Hide already accepted and rejected appointments" = "Ocultar eventos ya confirmados o rechazados";
 "Show already accepted and rejected appointments" = "Mostrar eventos ya confirmados o rechazados";
 
+/* Print view */
+
+"LIST" = "Lista";
+"Print Settings" = "Opciones de impresión";
+"Title:" = "Título:";
+"Layout:" = "Disposición";
+"What to Print" = "Que imprimir";
+"Options" = "Parametros";
+"Tasks with no due date" = "Tareas sin fecha de vencimiento";
+"Display working hours only" = "Enseñar solo horas de trabajo";
+"Completed tasks" = "Tareas Finalizadas";
+"Display events and tasks colors" = "Enseña colores de eventos y tareas";
+"Borders" = "Bordes";
+"Backgrounds" = "Fondos";
 
 /* Appointments */
 
@@ -179,6 +194,8 @@
 "Reminder:" = "Recordatorio:";
 "General:" = "General:";
 "Reply:" = "Responder:";
+"Created by:" = "Creado por:";
+
 
 "Target:" = "URL documento:";
 
@@ -223,8 +240,13 @@
 "view_future" = "Todos los eventos futuros";
 "view_selectedday" = "Día seleccionado";
 
+"view_not_started" = "Tareas sin iniciar";
+"view_overdue" = "Tareas vencidas";
+"view_incomplete" = "Tareas Incompletas";
+
 "View:" = "Ver:";
-"Title or Description" = "Título o descripción";
+"Title, category or location" = "Titulo, Categoría o localización";
+"Entire content" = "Contenido Completo";
 
 "Search" = "Buscar";
 "Search attendees" = "Buscar asistentes";
@@ -373,6 +395,9 @@
 
 "Show Time as Free" = "Mostrar tiempo como disponible";
 
+/* email notifications */
+"Send Appointment Notifications" = "Enviar avisos de evento";
+
 /* validation errors */
 
 validate_notitle           = "Sin título, ¿continuar?";
@@ -411,8 +436,9 @@ validate_endbeforestart    = "La fecha/hora de inicio es posterior a la de fin."
 "Workweek days only" = "Sólo días laborables";
 "Tasks in View" = "Mostrar tareas";
 
-"eventDeleteConfirmation" = "Se eliminarán el/los siguiente(s) evento(s) : \n%{0}\n¿Desea proceder?";
-"taskDeleteConfirmation" = "No se puede deshacer el borrado de esta tarea. ¿Desea continuar?";
+"eventDeleteConfirmation" = "Se eliminarán el/los siguiente(s) evento(s) :";
+"taskDeleteConfirmation" = "No se puede deshacer el borrado de esta tarea.";
+"Would you like to continue?" = "¿Desea continuar?";
 
 "You cannot remove nor unsubscribe from your personal calendar."
 = "No se puede quitar ni darse de baja de su calendario personal.";
@@ -500,7 +526,7 @@ vtodo_class2 = "(Tarea confidencial)";
 
 "Links to this Calendar" = "Vínculos a éste calendario";
 "Authenticated User Access" = "Acceso a usuario autenticado";
-"CalDAV URL" = "CalDAV url";
+"CalDAV URL" = "URL CalDAV:";
 "WebDAV ICS URL" = "WebDAV ICS URL";
 "WebDAV XML URL" = "WebDAV XML URL";
 
@@ -520,6 +546,8 @@ vtodo_class2 = "(Tarea confidencial)";
 "tagWasRemoved" = "Si quita este calendario de la sincronización, necesitará recargar los datos en su teléfono móvil.\n¿Continuar?";
 "DestinationCalendarError" = "El calendario origen y el destino son iguales. Por favor, intente copiar a otro calendario.";
 "EventCopyError" = "La copia falló. Por favor, intente copiar a un calendario distinto.";
+"Please select at least one calendar" = "Por favor, selecciona al menos un calendario";
+
 
 "Open Task..." = "Abrir tarea...";
 "Mark Completed" = "Marcar como completo";

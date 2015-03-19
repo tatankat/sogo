@@ -13,6 +13,11 @@ from: WOString {
   escapeHTML = NO;
 }
 
+newLine: WOString {
+  value = newLine;
+  escapeHTML = NO;
+}
+
 hasReplyTo: WOConditional {
   condition = hasReplyTo;
 }
@@ -71,4 +76,13 @@ messageBody: WOString {
 signature: WOString {
   value = signature;
   escapeHTML = NO;
+}
+
+signaturePlacementOnTop: WOConditional {
+  condition = signaturePlacementOnTop;
+}
+
+signaturePlacementOnBottom: WOConditional {
+  condition = signaturePlacementOnTop;
+  negate = YES;
 }

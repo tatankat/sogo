@@ -1,8 +1,6 @@
 /* SOGoUserDefaults.m - this file is part of SOGo
  *
- * Copyright (C) 2009-2012 Inverse inc.
- *
- * Author: Wolfgang Sourdeau <wsourdeau@inverse.ca>
+ * Copyright (C) 2009-2014 Inverse inc.
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +23,11 @@
 #import <Foundation/NSSet.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSTimeZone.h>
+
+#import <NGImap4/NSString+Imap4.h>
+#import <NGObjWeb/WOApplication.h>
+#import <NGObjWeb/WOContext+SoObjects.h>
+#import <NGObjWeb/WEClientCapabilities.h>
 
 #import "NSString+Utilities.h"
 #import "SOGoDomainDefaults.h"
@@ -51,6 +54,8 @@ NSString *SOGoWeekStartFirstFullWeek = @"FirstFullWeek";
   SOGoUserProfile *up;
   SOGoUserDefaults *ud;
   SOGoDefaultsSource *parent;
+  WOContext *context;
+  WEClientCapabilities *cc;
   static Class SOGoUserProfileKlass = Nil;
 
   if (!SOGoUserProfileKlass)
@@ -59,35 +64,21 @@ NSString *SOGoWeekStartFirstFullWeek = @"FirstFullWeek";
   up = [SOGoUserProfileKlass userProfileWithType: SOGoUserProfileTypeDefaults
                                           forUID: userId];
   [up fetchProfile];
-  // if ([_defaults values])
-  //   {
-      // BOOL b;
-      // b = NO;
-
-      // if (![[_defaults stringForKey: @"MessageCheck"] length])
-      //   {
-      //     [_defaults setObject: defaultMessageCheck forKey: @"MessageCheck"];
-      //     b = YES;
-      //   }
-      // if (![[_defaults stringForKey: @"TimeZone"] length])
-      //   {
-      //     [_defaults setObject: [serverTimeZone name] forKey: @"TimeZone"];
-      //     b = YES;
-      //   }
-      
-      // if (b)
-      //   [_defaults synchronize];
-      
-
-      // See explanation in -language
-      // [self invalidateLanguage];
-    // }
 
   parent = [SOGoDomainDefaults defaultsForDomain: domainId];
   if (!parent)
     parent = [SOGoSystemDefaults sharedSystemDefaults];
 
   ud = [self defaultsSourceWithSource: up andParentSource: parent];
+
+  // CKEditor (the HTML editor) is no longer compatible with IE7;
+  // force the user to use the plain text editor with IE7
+  context = [[WOApplication application] context];
+  cc = [[context request] clientCapabilities];
+  if ([cc isInternetExplorer] && [cc majorVersion] < 8)
+    {
+      [ud setObject: @"text" forKey: @"SOGoMailComposeMessageType"];
+    }
 
   return ud;
 }
@@ -194,8 +185,8 @@ NSString *SOGoWeekStartFirstFullWeek = @"FirstFullWeek";
     {
       migratedKeys
         = [NSDictionary dictionaryWithObjectsAndKeys:
-                          @"SOGoLoginModule", @"SOGoUIxDefaultModule",
-                          @"SOGoLoginModule", @"SOGoDefaultModule",
+                        @"SOGoLoginModule", @"SOGoUIxDefaultModule",
+                        @"SOGoLoginModule", @"SOGoDefaultModule",
                         @"SOGoTimeFormat", @"TimeFormat",
                         @"SOGoShortDateFormat", @"ShortDateFormat",
                         @"SOGoLongDateFormat", @"LongDateFormat",
@@ -206,7 +197,8 @@ NSString *SOGoWeekStartFirstFullWeek = @"FirstFullWeek";
                         @"SOGoLanguage", @"SOGoDefaultLanguage",
                         @"SOGoLanguage", @"Language",
                         @"SOGoMailComposeMessageType", @"ComposeMessagesType",
-                        @"SOGoMailMessageCheck", @"MessageCheck",
+                        @"SOGoSelectedAddressBook", @"SelectedAddressBook",
+                        @"SOGoRefreshViewCheck", @"RefreshViewCheck",
                         @"SOGoMailMessageForwarding", @"MessageForwarding",
                         @"SOGoMailSignature", @"MailSignature",
                         @"SOGoMailSignaturePlacement", @"SignaturePlacement",
@@ -393,6 +385,16 @@ NSString *SOGoWeekStartFirstFullWeek = @"FirstFullWeek";
   return userLanguage;
 }
 
+- (void) setMailAddOutgoingAddresses: (BOOL) newValue
+{
+  [self setBool: newValue forKey: @"SOGoMailAddOutgoingAddresses"];
+}
+
+- (BOOL) mailAddOutgoingAddresses
+{
+  return [self boolForKey: @"SOGoMailAddOutgoingAddresses"];
+}
+
 - (void) setMailShowSubscribedFoldersOnly: (BOOL) newValue
 {
   [self setBool: newValue forKey: @"SOGoMailShowSubscribedFoldersOnly"];
@@ -420,7 +422,8 @@ NSString *SOGoWeekStartFirstFullWeek = @"FirstFullWeek";
 
 - (NSString *) draftsFolderName
 {
-  return [self stringForKey: @"SOGoDraftsFolderName"];
+  return [[self stringForKey: @"SOGoDraftsFolderName"]
+             stringByEncodingImap4FolderName];
 }
 
 - (void) setSentFolderName: (NSString *) newValue
@@ -430,7 +433,8 @@ NSString *SOGoWeekStartFirstFullWeek = @"FirstFullWeek";
 
 - (NSString *) sentFolderName
 {
-  return [self stringForKey: @"SOGoSentFolderName"];
+  return [[self stringForKey: @"SOGoSentFolderName"]
+             stringByEncodingImap4FolderName];
 }
 
 - (void) setTrashFolderName: (NSString *) newValue
@@ -440,7 +444,8 @@ NSString *SOGoWeekStartFirstFullWeek = @"FirstFullWeek";
 
 - (NSString *) trashFolderName
 {
-  return [self stringForKey: @"SOGoTrashFolderName"];
+  return [[self stringForKey: @"SOGoTrashFolderName"]
+             stringByEncodingImap4FolderName];
 }
 
 - (void) setFirstDayOfWeek: (int) newValue
@@ -473,14 +478,24 @@ NSString *SOGoWeekStartFirstFullWeek = @"FirstFullWeek";
   return [self stringArrayForKey: @"SOGoMailListViewColumnsOrder"];
 }
 
-- (void) setMailMessageCheck: (NSString *) newValue
+- (void) setSelectedAddressBook:(NSString *) newValue
 {
-  [self setObject: newValue forKey: @"SOGoMailMessageCheck"];
+  [self setObject: newValue forKey: @"SOGoSelectedAddressBook"];
 }
 
-- (NSString *) mailMessageCheck
+- (NSString *) selectedAddressBook
 {
-  return [self stringForKey: @"SOGoMailMessageCheck"];
+  return [self stringForKey: @"SOGoSelectedAddressBook"];
+}
+
+- (void) setRefreshViewCheck: (NSString *) newValue
+{
+  [self setObject: newValue forKey: @"SOGoRefreshViewCheck"];
+}
+
+- (NSString *) refreshViewCheck
+{
+  return [self stringForKey: @"SOGoRefreshViewCheck"];
 }
 
 - (void) setMailComposeMessageType: (NSString *) newValue
@@ -493,7 +508,7 @@ NSString *SOGoWeekStartFirstFullWeek = @"FirstFullWeek";
   return [self stringForKey: @"SOGoMailComposeMessageType"];
 }
 
-- (void) setMailDisplayRemoteInlineImages: (NSString *) newValue;
+- (void) setMailDisplayRemoteInlineImages: (NSString *) newValue
 {
   [self setObject: newValue forKey: @"SOGoMailDisplayRemoteInlineImages"];
 }
@@ -501,6 +516,23 @@ NSString *SOGoWeekStartFirstFullWeek = @"FirstFullWeek";
 - (NSString *) mailDisplayRemoteInlineImages;
 {
   return [self stringForKey: @"SOGoMailDisplayRemoteInlineImages"];
+}
+
+- (void) setMailAutoSave: (NSString *) newValue
+{
+  [self setObject: newValue forKey: @"SOGoMailAutoSave"];
+}
+
+- (NSString *) mailAutoSave
+{
+  NSString *s;
+
+  s = [self stringForKey: @"SOGoMailAutoSave"];
+
+  if ([s intValue] == 0)
+    s = @"5";
+  
+  return s;
 }
 
 - (void) setMailMessageForwarding: (NSString *) newValue
@@ -703,35 +735,35 @@ NSString *SOGoWeekStartFirstFullWeek = @"FirstFullWeek";
   return [self stringForKey: @"SOGoCalendarTasksDefaultClassification"];
 }
 
-- (void) setReminderEnabled: (BOOL) newValue
+- (void) setCalendarDefaultReminder: (NSString *) newValue
 {
-  [self setBool: newValue forKey: @"SOGoReminderEnabled"];
+  [self setObject: newValue forKey: @"SOGoCalendarDefaultReminder"];
 }
 
-- (BOOL) reminderEnabled
+- (NSString *) calendarDefaultReminder
 {
-  return [self boolForKey: @"SOGoReminderEnabled"];
+  return [self stringForKey: @"SOGoCalendarDefaultReminder"];
 }
 
-- (void) setReminderTime: (NSString *) newValue
+//
+// Dictionary of arrays. Example:
+//
+// {
+//   label1 => ("Important", "#FF0000");
+//   label2 => ("Work" "#00FF00");
+//   foo_bar => ("Foo Bar", "#0000FF");
+// }
+//
+- (void) setMailLabelsColors: (NSDictionary *) newValues
 {
-  [self setObject: newValue forKey: @"SOGoReminderTime"];
+  [self setObject: newValues forKey: @"SOGoMailLabelsColors"];
 }
 
-- (NSString *) reminderTime
+- (NSDictionary *) mailLabelsColors
 {
-  return [self stringForKey: @"SOGoReminderTime"];
+  return [self objectForKey: @"SOGoMailLabelsColors"];
 }
 
-- (void) setRemindWithASound: (BOOL) newValue
-{
-  [self setBool: newValue forKey: @"SOGoRemindWithASound"];
-}
-
-- (BOOL) remindWithASound
-{
-  return [self boolForKey: @"SOGoRemindWithASound"];
-}
 
 - (void) setSieveFilters: (NSArray *) newValue
 {

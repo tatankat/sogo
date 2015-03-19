@@ -79,7 +79,6 @@
 "Remove this folder" = "Fjern denne mappe";
 "Erase mails from this folder" = "Slet beskeder fra denne mappe";
 "Expunge this folder" = "Slet denne mappe";
-"Archive This Folder" = "Gem denne mappe";
 "Modify the acl of this folder" = "Rediger ACL i denne mappe";
 
 "Saved Messages.zip" = "Gemte beskeder.zip";
@@ -168,8 +167,6 @@
 "InboxFolderName"  = "Indbakke";
 "DraftsFolderName" = "Kladder";
 "SieveFolderName"  = "Filtre";
-"OtherUsersFolderName"   = "Andre brugere";
-"SharedFoldersName" = "Delte mapper";
 "Folders"          = "Mapper"; /* title line */
 
 /* MailMoveToPopUp */
@@ -227,11 +224,6 @@
 
 /* Label popup menu */
 "None" = "Ingen";
-"Important" = "Vigtigt";
-"Work" = "Arbejde";
-"Personal" = "Privat";
-"To Do" = "To Do";
-"Later" = "Senere";
 
 /* Mark popup menu */
 "As Read" = "Som læst";

@@ -347,7 +347,7 @@ function onPopupRecurrenceWindow(event) {
             if (ComponentEditor.recurrenceWindow && ComponentEditor.recurrenceWindow.open && !ComponentEditor.recurrenceWindow.closed)
                 ComponentEditor.recurrenceWindow.focus();
             else
-                ComponentEditor.recurrenceWindow = window.open(ApplicationBaseURL + "editRecurrence",
+                ComponentEditor.recurrenceWindow = window.open(ApplicationBaseURL + "/editRecurrence",
                                                                sanitizeWindowName(activeCalendar + activeComponent + "Recurrence"),
                                                                "width=500,height=400");
         }
@@ -373,7 +373,7 @@ function onPopupReminderWindow(event) {
             else {
                 var height = (emailAlarmsEnabled ? 235 : 150);
                 ComponentEditor.reminderWindow
-                    = window.open(ApplicationBaseURL + "editReminder",
+                    = window.open(ApplicationBaseURL + "/editReminder",
                                   sanitizeWindowName(activeCalendar + activeComponent + "Reminder"),
                                   "width=255,height=" + height);
             }
@@ -386,26 +386,22 @@ function onPopupReminderWindow(event) {
 }
 
 function onOkButtonClick (e) {
-    var item = $("replyList");
-    var value = parseInt(item.options[item.selectedIndex].value);
-    var action = "";
-    var parameters = "";
-  
-    if (value == 0)
-        action = 'accept';
-    else if (value == 1)
-        action = 'decline';
-    else if (value == 2)
-        action = 'needsaction';
-    else if (value == 3)
-        action = 'tentative';
-    else if (value == 4) {
-        var url = ApplicationBaseURL + activeCalendar + '/' + activeComponent;
-        delegateInvitation(url, modifyEventCallback);
-    }
+    
+    var jsonData = Form.serialize(document.forms['rsvpform'], true);
 
-    if (action != "")
-        modifyEvent (item, action, parameters);
+    var input = $("delegatedTo");
+    if (input && input.readAttribute("uid") != null) {
+        jsonData['delegatedTo'] = input.readAttribute("uid");
+    }
+    
+    triggerAjaxRequest(document.forms['rsvpform'].readAttribute("action"),
+                       modifyEventCallback,
+                       null,
+                       Object.toJSON(jsonData),
+                       { "content-type": "application/json"}
+                       );
+    
+    return false;
 }
 
 function onCancelButtonClick (e) {

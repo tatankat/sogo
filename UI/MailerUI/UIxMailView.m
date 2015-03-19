@@ -47,11 +47,12 @@
 #import <SOGo/SOGoUser.h>
 #import <SOGo/SOGoUserDefaults.h>
 #import <SOGo/SOGoUserManager.h>
+#import <SOGoUI/UIxComponent.h>
 #import <Mailer/SOGoMailObject.h>
 #import <Mailer/SOGoMailAccount.h>
 #import <Mailer/SOGoMailFolder.h>
-#import <SOGoUI/UIxComponent.h>
 #import <MailPartViewers/UIxMailRenderingContext.h> // cyclic
+#import <MailPartViewers/UIxMailSizeFormatter.h>
 
 #import "WOContext+UIxMailer.h"
 
@@ -60,6 +61,8 @@
   id currentAddress;
   NSString *shouldAskReceipt;
   NSString *matchingIdentityEMail;
+  NSDictionary *attachment;
+  NSArray *attachmentAttrs;
 }
 
 @end
@@ -74,12 +77,14 @@ static NSString *mailETag = nil;
                                SOGO_MAJOR_VERSION,
                                SOGO_MINOR_VERSION,
                                SOGO_SUBMINOR_VERSION];
-  NSLog (@"Note: using constant etag for mail viewer: '%@'", mailETag);
+  //NSLog (@"Note: using constant etag for mail viewer: '%@'", mailETag);
 }
 
 - (void) dealloc
 {
   [matchingIdentityEMail release];
+  [attachment release];
+  [attachmentAttrs release];
   [super dealloc];
 }
 
@@ -109,6 +114,16 @@ static NSString *mailETag = nil;
   return [NSString stringWithFormat: @"%@: %@",
                    [self labelForKey: @"View Mail"],
                    [self messageSubject]];
+}
+
+- (void) setAttachment: (NSDictionary *) newAttachment
+{
+  ASSIGN (attachment, newAttachment);
+}
+
+- (NSDictionary *) attachment
+{
+  return attachment;
 }
 
 /* links (DUP to UIxMailPartViewer!) */
@@ -144,6 +159,36 @@ static NSString *mailETag = nil;
 - (BOOL) hasReplyTo
 {
   return [[[self clientObject] replyToEnvelopeAddresses] count] > 0 ? YES : NO;
+}
+
+/* attachment helper */
+
+- (NSArray *) attachmentAttrs
+{
+  if (!attachmentAttrs)
+  {
+    ASSIGN (attachmentAttrs, [[self clientObject] fetchFileAttachmentKeys]);
+  }
+
+  return attachmentAttrs;
+}
+
+- (BOOL) hasAttachments
+{
+  return [[self attachmentAttrs] count] > 0 ? YES : NO;
+}
+
+- (NSFormatter *) sizeFormatter
+{
+  return [UIxMailSizeFormatter sharedMailSizeFormatter];
+}
+
+- (NSString *) attachmentsText
+{
+  if ([[self attachmentAttrs] count] > 1)
+    return [self labelForKey: @"files"];
+  else
+    return [self labelForKey: @"file"];
 }
 
 /* viewers */
@@ -269,6 +314,15 @@ static NSString *mailETag = nil;
               matchingIdentityEMail = currentEMail;
               [matchingIdentityEMail retain];
             }
+        }
+      
+      if (!matchingIdentityEMail)
+        {
+          // This can happen if we receive the message because we are
+          // in the list of bcc. In this case, we take the first
+          // identity associated with the account.
+          matchingIdentityEMail = [[[[[self clientObject] mailAccountFolder] identities] lastObject] objectForKey: @"email"];
+          RETAIN(matchingIdentityEMail);
         }
     }
 
@@ -442,13 +496,18 @@ static NSString *mailETag = nil;
 
 - (NGHashMap *) _receiptMessageHeaderTo: (NSString *) email
 {
+  NSString *subject, *from;
   NGMutableHashMap *map;
-  NSString *subject;
 
   map = [[NGMutableHashMap alloc] initWithCapacity: 1];
   [map autorelease];
   [map setObject: email forKey: @"to"];
-  [map setObject: [self _matchingIdentityEMail] forKey: @"from"];
+
+  from = [self _matchingIdentityEMail];
+  
+  if (from)
+    [map setObject: from forKey: @"from"];
+  
   [map setObject: @"multipart/report; report-type=disposition-notification"
           forKey: @"content-type"];
   subject = [NSString stringWithFormat:

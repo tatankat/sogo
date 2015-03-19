@@ -1,9 +1,6 @@
 /* SOGoUserManager.m - this file is part of SOGo
  *
- * Copyright (C) 2007-2013 Inverse inc.
- *
- * Author: Wolfgang Sourdeau <wsourdeau@inverse.ca>
- *         Francis Lachapelle <flachapelle@inverse.ca>
+ * Copyright (C) 2007-2015 Inverse inc.
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 #import <Foundation/NSArray.h>
+#import <Foundation/NSCalendarDate.h>
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSEnumerator.h>
 #import <Foundation/NSException.h>
@@ -598,10 +596,11 @@ static Class NSNullK;
 		    newPassword: (NSString *) newPassword
 			   perr: (SOGoPasswordPolicyError *) perr
 {
-  NSString *jsonUser;
+  NSString *jsonUser, *userLogin;
   NSMutableDictionary *currentUser;
   BOOL didChange;
- 
+  SOGoSystemDefaults *sd;
+
   jsonUser = [[SOGoCache sharedCache] userAttributesForLogin: login];
   currentUser = [jsonUser objectFromJSONString];
 
@@ -614,9 +613,7 @@ static Class NSNullK;
       didChange = YES;
 
       if (!currentUser)
-	{
-	  currentUser = [NSMutableDictionary dictionary];
-	}
+        currentUser = [NSMutableDictionary dictionary];
 
       // It's important to cache the password here as we might have cached the
       // user's entry in -contactInfosForUserWithUIDorEmail: and if we don't
@@ -624,9 +621,13 @@ static Class NSNullK;
       // cached for the user unless its entry expires from memcached's
       // internal cache.
       [currentUser setObject: [newPassword asSHA1String] forKey: @"password"];
-      [[SOGoCache sharedCache]
-        setUserAttributes: [currentUser jsonRepresentation]
-	forLogin: login];
+      sd = [SOGoSystemDefaults sharedSystemDefaults];
+      if ([sd enableDomainBasedUID])
+        userLogin = [NSString stringWithFormat: @"%@@%@", login, domain];
+      else
+        userLogin = login;
+      [[SOGoCache sharedCache] setUserAttributes: [currentUser jsonRepresentation]
+                                        forLogin: userLogin];
     }
     else
       didChange = NO;
@@ -912,6 +913,37 @@ static Class NSNullK;
     currentUser = nil;
 
   return currentUser;
+}
+
+/**
+ * Fetch the contact information identified by the specified UID in the global addressbooks.
+ */
+- (NSDictionary *) fetchContactWithUID: (NSString *) uid
+                              inDomain: (NSString *) domain
+{
+  NSDictionary *contact;
+  NSMutableArray *contacts;
+  NSEnumerator *sources;
+  NSString *sourceID;
+  id currentSource;
+
+  contacts = [NSMutableArray array];
+  contact = nil;
+  sources = [[self addressBookSourceIDsInDomain: domain] objectEnumerator];
+  while ((sourceID = [sources nextObject]))
+    {
+      currentSource = [_sources objectForKey: sourceID];
+      contact = [currentSource lookupContactEntry: uid];
+      if (contact)
+        [contacts addObject: contact];
+    }
+
+  if ([contacts count])
+    contact = [[self _compactAndCompleteContacts: [contacts objectEnumerator]] lastObject];
+  else
+    contact = nil;
+
+  return contact;
 }
 
 - (NSArray *) _compactAndCompleteContacts: (NSEnumerator *) contacts

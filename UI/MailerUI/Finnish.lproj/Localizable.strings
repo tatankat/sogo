@@ -13,6 +13,7 @@
 "Print"       = "Tulosta";
 "Stop"        = "Lopeta";
 "Write"       = "Kirjoita";
+"Search"      = "Etsi";
 
 "Send" = "Lähetä";
 "Contacts" = "Yhteystiedot";
@@ -41,6 +42,7 @@
 "Attachment" = "Liitetiedosto";
 "Unread" = "Lukematta";
 "Flagged" = "Merkitty";
+"Search multiple mailboxes" = "Etsi useista postilaatikoista";
 
 /* Main Frame  */
 
@@ -79,7 +81,7 @@
 "Remove this folder" = "Poista tämä kansio";
 "Erase mails from this folder" = "Poista viestit tästä kansiosta";
 "Expunge this folder" = "Poista tämä kansio";
-"Archive This Folder" = "Arkistoi tämä kansio";
+"Export This Folder" = "Vie tämä kansio";
 "Modify the acl of this folder" = "Muokkaa kansion käyttäjäoikeuksia";
 
 "Saved Messages.zip" = "TallennetutViestit.zip";
@@ -94,21 +96,23 @@
 "To"            = "Vastaanottaja";
 "Cc"            = "Kopio";
 "Bcc"           = "Piilokopio";
-"Reply-To"	= "Vastausosoite";
+"Reply-To"	    = "Vastausosoite";
 "Add address"   = "Lisää osoite";
+"Body"          = "Runko";
 
-"Attachments:" = "Liitteet:";
 "Open" = "Avaa.";
 "Select All" = "Valitse kaikki";
 "Attach Web Page..." = "Liitä Web-sivu...";
-"Attach File(s)..." = "Liitä tiedosto(ja)...";
+"file" = "tiedosto";
+"files" = "tiedostot";
+"Save all" = "Tallenna kaikki";
 
 "to"            = "Vastaanottaja";
 "cc"            = "Kopio";
 "bcc"           = "Piilokopio";
 
 "Edit Draft..." = "Muokkaa luonnosta...";
-"Load Images" = "Lataa kuvia";
+"Load Images" = "Lataa kuvat";
 
 "Return Receipt" = "Vastaanottokuittaus";
 "The sender of this message has asked to be notified when you read this message. Do you with to notify the sender?" = "Viestin lähettäjä on pyytänyt lukukuittausta. Haluatko lähettää kuittauksen viestin lähettäjälle?";
@@ -165,11 +169,9 @@
 
 "SentFolderName"   = "Lähetetyt";
 "TrashFolderName"  = "Roskakori";
-"InboxFolderName"  = "Sapuneet";
+"InboxFolderName"  = "Saapuneet";
 "DraftsFolderName" = "Luonnokset";
 "SieveFolderName"  = "Suodattimet";
-"OtherUsersFolderName"   = "Muut käyttäjät";
-"SharedFoldersName" = "Jaetut kansiot";
 "Folders"          = "Kansiot"; /* title line */
 
 /* MailMoveToPopUp */
@@ -227,11 +229,6 @@
 
 /* Label popup menu */
 "None" = "Ei mitään";
-"Important" = "Tärkeä";
-"Work" = "Työ";
-"Personal" = "Henkilökohtainen";
-"To Do" = "Tehtävä";
-"Later" = "Myöhemmin";
 
 /* Mark popup menu */
 "As Read" = "Luetuksi";
@@ -242,6 +239,18 @@
 "As Junk" = "Roskaksi";
 "As Not Junk" = "Ei roskaksi";
 "Run Junk Mail Controls" = "Käynnistä roskapostien hallinta";
+
+"Search messages in:" = "Etsi viestejä:";
+"Search" = "Etsi";
+"Search subfolders" = "Etsi alihakemistoista";
+"Match any of the following" = "Täsmää mihin tahansa seuraavista";
+"Match all of the following" = "Täsmää kaikkiin seuraaviin";
+"contains" = "sisältää";
+"does not contain" = "ei sisällä";
+"No matches found" = "Vastaavuuksia ei löytynyt";
+"results found" = "löytyneitä tuloksia";
+"result found" = "löytynyt tulos";
+"Please specify at least one filter" = "Ole hyvä ja määritä ainakin yksi suodatin";
 
 /* Folder operations */
 "Name :" = "Nimi:";
@@ -285,6 +294,9 @@
 "error_missingsubject" = "Viestillä ei ole otsikkoa. Haluatko varrmasti lähettää sen?";
 "error_missingrecipients" = "Ole hyvä ja syötä ainakin yksi vastaanottaja.";
 "Send Anyway" = "Lähetä silti";
+"Error while saving the draft:" = "Virhe luonnoksen tallennuksessa:";
+"Error while uploading the file \"%{0}\":" = "Virhe tiedoston \"%{0}\" latauksessa: ";
+"There is an active file upload. Closing the window will interrupt it." = "Tiedoston lataus on käynnissä. Ikkunan sulkeminen pysäyttää latauksen.";
 
 /* Message sending */
 "cannot send message: (smtp) all recipients discarded" = "Viestiä ei voi lähettää: kaikki vastaanottajat ovat virheellisiä.";

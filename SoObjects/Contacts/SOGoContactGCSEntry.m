@@ -1,8 +1,6 @@
 /* SOGoContactGCSEntry.h - this file is part of SOGo
  *
- * Copyright (C) 2006-2012 Inverse inc.
- *
- * Author: Wolfgang Sourdeau <wsourdeau@inverse.ca>
+ * Copyright (C) 2006-2014 Inverse inc.
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +46,11 @@
 {
   [card release];
   [super dealloc];
+}
+
+- (Class *) parsingClass
+{
+  return [NGVCard class];
 }
 
 /* content */
@@ -123,10 +126,24 @@
 
   newContact = [[self class] objectWithName:
 			       [NSString stringWithFormat: @"%@.vcf", newUID]
-			     inContainer: newFolder];
+                                inContainer: newFolder];
 
-  return [newContact saveContentString: [newCard versitString]];
+  return [newContact saveComponent: newCard];
 }
+
+
+- (NSException *) moveToFolder: (SOGoGCSFolder *) newFolder
+{
+  NSException *ex;
+
+  ex = [self copyToFolder: newFolder];
+
+  if (!ex)
+    ex = [self delete];
+
+  return ex;
+}
+
 
 - (NSString *) displayName
 {
@@ -152,19 +169,25 @@
   NSException *result;
 
   if (card)
-    result = [self saveContentString: [card versitString]];
+    result = [super saveComponent: card];
   else
     result = nil; /* TODO: we should probably return an exception instead */
 
   return result;
 }
 
-- (NSException *) saveContentString: (NSString *) newContent
-                        baseVersion: (unsigned int) newVersion
+- (NSException *) saveComponent: (NGVCard *) newCard
+{
+  ASSIGN(card, newCard);
+  return [super saveComponent: newCard];
+}
+
+- (NSException *) saveComponent: (NGVCard *) newCard
+                    baseVersion: (unsigned int) newVersion
 {
   NSException *ex;
 
-  ex = [super saveContentString: newContent baseVersion: newVersion];
+  ex = [super saveComponent: newCard baseVersion: newVersion];
   [card release];
   card = nil;
 

@@ -1,10 +1,7 @@
 <?php
 /* updates.php - this file is part of SOGo
  *
- *  Copyright (C) 2006-2013 Inverse inc.
- *
- * Author: Wolfgang Sourdeau <wsourdeau@inverse.ca>
- *         Francis Lachapelle <flachapelle@inverse.ca>
+ *  Copyright (C) 2006-2014 Inverse inc.
  *
  * This file is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,22 +25,22 @@ $plugins
 = array(
         "sogo-connector@inverse.ca"
          => array( "application" => "thunderbird",
-                   "version" => "17.0.3",
-                   "filename" => "sogo-connector-17.0.3.xpi" ),
+                   "version" => "31.0.0",
+                   "filename" => "sogo-connector-31.0.0.xpi" ),
         "sogo-integrator@inverse.ca"
          => array( "application" => "thunderbird",
-                   "version" => "17.0.3",
-                   "filename" => "sogo-integrator-17.0.3.xpi" ),
+                   "version" => "31.0.0",
+                   "filename" => "sogo-integrator-31.0.0.xpi" ),
 	"{e2fda1a4-762b-4020-b5ad-a41df1933103}"
 	=> array( "application" => "thunderbird",
-		   "version" => "1.9",
-		   "filename" => "lightning-1.9.xpi" )
+		   "version" => "3.3.1",
+		   "filename" => "lightning-3.3.1.xpi" )
 );
 
 $applications
 = array( "thunderbird" => "<em:id>{3550f703-e582-4d05-9a08-453d09bdfdc6}</em:id>
-                <em:minVersion>17.0</em:minVersion>
-                <em:maxVersion>17.*</em:maxVersion>" );
+                <em:minVersion>31.0</em:minVersion>
+                <em:maxVersion>31.*</em:maxVersion>" );
 
 $pluginname = $_GET["plugin"];
 $plugin =& $plugins[$pluginname];

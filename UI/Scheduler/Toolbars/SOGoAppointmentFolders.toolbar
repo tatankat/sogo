@@ -21,12 +21,11 @@
       onclick = "return onDayOverview();";
       image = "day-view.png";
       tooltip = "Switch to day view"; },
-    /* disabled until we fix the view */
-    /*    { link = "#";
-            label="Multicolumn Day View";
-            onclick = "return onMulticolumnDayOverview();";
-            image = "day-view-multicolumn.png";
-            tooltip = ""; }, */
+    { link = "#";
+      label="Multicolumn Day View";
+      onclick = "return onMulticolumnDayOverview();";
+      image = "day-view-multicolumn.png";
+      tooltip = "Switch to multi-columns day view"; },
     { link = "#";
       label="Week View";
       onclick = "return onWeekOverview();";
@@ -37,6 +36,12 @@
       onclick = "return onMonthOverview();";
       image = "month-view.png";
       tooltip = "Switch to month view"; } ),
+  ( { link = "#";
+      onclick = "return printView();";
+      cssClass = "tbicon_print single-window-not-conditional";
+      image = "tb-mail-print-flat-24x24.png";
+      label = "Print view";
+      tooltip = "Print the current calendar view"; } ),
   ( { link = "#";
       label="Delete";
       onclick = "return deleteEvent(this);";

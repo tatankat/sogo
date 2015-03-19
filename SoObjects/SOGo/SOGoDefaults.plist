@@ -1,9 +1,10 @@
 {
     WOWorkersCount = 1;
+    WOListenQueueSize = 5;
     SxVMemLimit = 384;
     WOLogFile = "/var/log/sogo/sogo.log";
     WOPidFile = "/var/run/sogo/sogo.pid";
-
+    WOHTTPAdaptorCapitalizeHeaders = YES;
     WOPort = "127.0.0.1:20000";
 
     NGImap4ConnectionStringSeparator = "/";
@@ -13,6 +14,7 @@
     SOGoZipPath = "/usr/bin/zip";
 
     SOGoEncryptionKey = "MySOGoEncryptionKey";
+    SOGoSieveFolderEncoding = "UTF-7";
 
     WOUseRelativeURLs = YES;
     WOMessageUseUTF8 = YES;
@@ -52,11 +54,12 @@
 
     SOGoIMAPServer = "localhost";
     SOGoMailDomain = "localhost";
-    SOGoMailMessageCheck = "manually";
+    SOGoSelectedAddressBook = "collected";
+    SOGoRefreshViewCheck = "manually";
     SOGoMailMessageForwarding = "inline";
     SOGoMailReplyPlacement = "below";
     SOGoMailSignaturePlacement = "below";
-    SOGoMailPollingIntervals = ( 1, 2, 5, 10, 20, 30, 60 );
+    SOGoRefreshViewIntervals = ( 1, 2, 5, 10, 20, 30, 60 );
     SOGoMailComposeMessageType = "text";
     SOGoMailListViewColumnsOrder = ( "Thread", "Flagged", "Attachment", "Subject",
                                      "From", "Unread", "Date", "Priority",
@@ -65,15 +68,25 @@
     SOGoDraftsFolderName = "Drafts";
     SOGoTrashFolderName = "Trash";
 
+    SOGoMailAutoSave = "5";
+
     SOGoCalendarDefaultCategoryColor = "#aaa";
     SOGoCalendarShouldDisplayWeekend = YES;
     SOGoCalendarEventsDefaultClassification = "PUBLIC";
     SOGoCalendarTasksDefaultClassification = "PUBLIC";
+    SOGoCalendarDefaultReminder = "NONE";
 
     SOGoFreeBusyDefaultInterval = ( 7, 7 );
 
-    SOGoReminderEnabled = YES;
-    SOGoRemindWithASound = YES;
-
     SOGoSearchMinimumWordLength = 2;
+
+    SOGoMailLabelsColors = {
+        $label1 = ("Important", "#FF0000");
+        $label2 = ("Work", "#FF9900");
+        $label3 = ("Personal", "#009900");
+        $label4 = ("To Do", "#3333FF");
+        $label5 = ("Later", "#993399");
+    };
+    
+    SOGoSubscriptionFolderFormat = "%{FolderName} (%{UserName} <%{Email}>)";
 }

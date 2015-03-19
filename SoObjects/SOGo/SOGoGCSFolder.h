@@ -1,6 +1,6 @@
 /*
   Copyright (C) 2004-2005 SKYRIX Software AG
-  Copyright (C) 2006-2010 Inverse inc.
+  Copyright (C) 2006-2015 Inverse inc.
 
   This file is part of SOGo.
 
@@ -101,7 +101,8 @@
                 withReference: (NSString *) reference;
 
 - (BOOL) subscribeUserOrGroup: (NSString *) theIdentifier
-		     reallyDo: (BOOL) reallyDo;
+		     reallyDo: (BOOL) reallyDo
+                     response: (WOResponse *) theResponse;
 - (BOOL) userIsSubscriber: (NSString *) subscribingUser;
 
 - (void) initializeQuickTablesAclsInContext: (WOContext *) localContext;
@@ -124,6 +125,11 @@
 - (NSDictionary *) parseDAVRequestedProperties: (id <DOMElement>) propElement;
 
 - (NSString *) davCollectionTag;
+
+- (NSArray *) syncTokenFieldsWithProperties: (NSDictionary *) properties
+                          matchingSyncToken: (NSString *) syncToken
+                                   fromDate: (NSCalendarDate *) theStartDate;
+
 
 /* multiget helper */
 - (WOResponse *) performMultigetInContext: (WOContext *) queryContext

@@ -1,10 +1,8 @@
 /* -*- Mode: java; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 
 /*
-  Copyright (C) 2005 SKYRIX Software AG
-  Copyright (C) 2006-2013 Inverse inc.
-  
- 
+  Copyright (C) 2006-2014 Inverse inc.
+   
   This file is part of SOGo.
  
   SOGo is free software; you can redistribute it and/or modify it under
@@ -54,29 +52,29 @@ function validateAptEditor() {
 
     e = $('startTime_date');
     if (e.value.length != 10) {
-        alert(labels.validate_invalid_startdate);
+        showAlertDialog(labels.validate_invalid_startdate);
         return false;
     }
 
     startdate = getStartDate();
     if (startdate == null) {
-        alert(labels.validate_invalid_startdate);
+        showAlertDialog(labels.validate_invalid_startdate);
         return false;
     }
       
     e = $('endTime_date');
     if (e.value.length != 10) {
-        alert(labels.validate_invalid_enddate);
+        showAlertDialog(labels.validate_invalid_enddate);
         return false;
     }
     enddate = getEndDate();
     if (enddate == null) {
-        alert(labels.validate_invalid_enddate);
+        showAlertDialog(labels.validate_invalid_enddate);
         return false;
     }
     tmpdate = uixEarlierDate(startdate, enddate);
     if (tmpdate == enddate) {
-        alert(labels.validate_endbeforestart);
+        showAlertDialog(labels.validate_endbeforestart);
         return false;
     }
     else if (tmpdate == null /* means: same date */) {
@@ -93,23 +91,23 @@ function validateAptEditor() {
                 endMinute = parseInt(matches[2], 10);
 
                 if (startHour > endHour) {
-                    alert(labels.validate_endbeforestart);
+                    showAlertDialog(labels.validate_endbeforestart);
                     return false;
                 }
                 else if (startHour == endHour) {
                     if (startMinute > endMinute) {
-                        alert(labels.validate_endbeforestart);
+                        showAlertDialog(labels.validate_endbeforestart);
                         return false;
                     }
                 }
             }
             else {
-                alert(labels.validate_invalid_enddate);
+                showAlertDialog(labels.validate_invalid_enddate);
                 return false;
             }
         }
         else {
-            alert(labels.validate_invalid_startdate);
+            showAlertDialog(labels.validate_invalid_startdate);
             return false;
         }
     }
@@ -208,7 +206,7 @@ function onEventPostComplete(response) {
         }
         else {
             var message = jsonResponse["message"];
-            alert(jsonResponse["message"]);
+            showAlertDialog(jsonResponse["message"]);
         }
     }
 }
@@ -293,8 +291,11 @@ function setEndDate(newEndDate) {
 function onAdjustTime(event) {
     var endDate = window.getEndDate();
     var startDate = window.getStartDate();
-  
-    if ($(this).readAttribute("id").startsWith("start")) {
+    var input = $(this);
+    if (input.tagName != 'INPUT')
+        input = input.down('input');
+
+    if (input.id.startsWith("start")) {
         // Start date was changed
         if (startDate == null) {
             var oldStartDate = window.getShadowStartDate();
@@ -326,7 +327,7 @@ function onAdjustTime(event) {
         else {
             var delta = endDate.valueOf() - startDate.valueOf();
             if (delta < 0) {
-                alert(labels.validate_endbeforestart);
+                showAlertDialog(labels.validate_endbeforestart);
                 var oldEndDate = window.getShadowEndDate();
                 window.setEndDate(oldEndDate);
 
@@ -350,15 +351,15 @@ function initTimeWidgets(widgets) {
     this.timeWidgets = widgets;
 
     if (widgets['start']['date']) {
-        jQuery(widgets['start']['date']).closest('.date').datepicker({autoclose: true, weekStart: firstDayOfWeek});
-        jQuery(widgets['start']['date']).change(onAdjustTime);
+        jQuery(widgets['start']['date']).closest('.date').datepicker({autoclose: true, weekStart: firstDayOfWeek})
+            .on('changeDate', onAdjustTime);
         widgets['start']['time'].on("time:change", onAdjustTime);
         widgets['start']['time'].addInterface(SOGoTimePickerInterface);
     }
 
     if (widgets['end']['date']) {
-        jQuery(widgets['end']['date']).closest('.date').datepicker({autoclose: true, weekStart: firstDayOfWeek});
-        jQuery(widgets['end']['date']).change(onAdjustTime);
+        jQuery(widgets['end']['date']).closest('.date').datepicker({autoclose: true, weekStart: firstDayOfWeek})
+            .on('changeDate', onAdjustTime);
         widgets['end']['time'].on("time:change", onAdjustTime);
         widgets['end']['time'].addInterface(SOGoTimePickerInterface);
     }
@@ -487,7 +488,7 @@ function initializeAttendeesHref() {
 }
 
 function onAttendeesHrefClick(event) {
-    popupToolbarMenu(this, 'attendeesMenu');
+    popupMenu(event, 'attendeesMenu', this);
     preventDefault(event);
     return false;
 }
@@ -536,6 +537,7 @@ function onAppointmentEditorLoad() {
 
     // Extend JSON representation of attendees
     attendees = $H(attendees);
+
     initializeAttendeesHref();
 }
 

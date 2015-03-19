@@ -1,6 +1,6 @@
 /*
 
-  Copyright (C) 2006-2011 Inverse inc. 
+  Copyright (C) 2006-2014 Inverse inc. 
   Copyright (C) 2004-2005 SKYRIX Software AG
 
   This file is part of SOGo.
@@ -361,7 +361,7 @@
 
   if (login)
     {
-      /* We redirect the user to his "homepage" when newLocation could not be
+      /* We redirect the user to their "homepage" when newLocation could not be
          deduced from the "cas-location" cookie and the current action is not a
          login callback (ticket != nil).  */
       if (!newLocation || !ticket)
@@ -537,7 +537,7 @@
 {
   NSString *aString;
 
-  aString = [NSString stringWithString: SOGoVersion ];
+  aString = [NSString stringWithString: SOGoVersion];
 
   return aString;
 }
