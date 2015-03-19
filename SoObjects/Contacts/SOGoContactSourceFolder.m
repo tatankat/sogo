@@ -564,7 +564,6 @@
 {
   NSObject <DOMElement> *element;
   NSString *url, *baseURL, *cname;
-  NSDictionary *object;
   NSString **propertiesArray;
   NSMutableString *buffer;
   NSDictionary *object;
